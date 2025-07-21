@@ -23,4 +23,4 @@ Il progetto segue le best practice Agile con metodologia Scrum. Le funzionalità
 4. Aprire il browser su `http://localhost:8080`
 
 ## Autori
-- Franks Toscani Koudja, Nome 2, Nome 3 (inserire i nomi reali del gruppo)
+- Franks Toscani Koudja, Zhiyuan Xie, Andrea Croci
