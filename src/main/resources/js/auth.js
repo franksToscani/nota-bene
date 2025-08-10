@@ -329,6 +329,13 @@ class AuthFormHandler {
     }
 }
 
+/**
+ * Inizializzazione quando il DOM è carico
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    new AuthFormHandler();
+});
+
 // Esporta le classi per uso esterno
 window.AuthService = AuthService;
 window.ApiClient = ApiClient;
