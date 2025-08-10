@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <title>NOTA BENE</title>
+     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>"/>
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <header class="auth-header">
+            <div class="logo">
+                <div class="logo-icon">📝</div>
+                <h1 class="logo-text">NOTA BENE</h1>
+            </div>
+        </header>
+
+        <main class="auth-forms">
+            <div class="auth-toggle">
+                <button id="login-tab" class="toggle-btn active" type="button">
+                    Accedi
+                </button>
+                <button id="register-tab" class="toggle-btn" type="button">
+                    Registrati
+                </button>
+            </div>
+
+            <!-- Form di Login -->
+            <div id="login-form" class="form-container active">
+                <form class="auth-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="login-nickname" class="form-label">Nickname</label>
+                        <input 
+                            type="text" 
+                            id="login-nickname" 
+                            name="nickname" 
+                            class="form-input"
+                            placeholder="Mario Rossi"
+                            minlength="3"
+                            maxlength="20"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password" class="form-label">Password</label>
+                        <input 
+                            type="password" 
+                            id="login-password" 
+                            name="password" 
+                            class="form-input"
+                            minlength="6"
+                            maxlength="20"
+                            placeholder="abc123"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+
+                    <button type="submit" class="auth-btn primary">
+                        <span class="btn-text">Accedi</span>
+                        <div class="btn-loader" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Form di Registrazione -->
+            <div id="register-form" class="form-container">
+                <form class="auth-form" id="registerForm">
+                    <div class="form-group">
+                        <label for="register-email" class="form-label">Email</label>
+                        <input 
+                            type="email" 
+                            id="register-email" 
+                            name="email" 
+                            class="form-input"
+                            placeholder="example@gmail.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-nickname" class="form-label">Nickname</label>
+                        <input 
+                            type="text" 
+                            id="register-nickname" 
+                            name="nickname" 
+                            class="form-input"
+                            placeholder="Mario Rossi"
+                            required
+                            autocomplete="username"
+                            minlength="3"
+                            maxlength="20"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="register-password" class="form-label">Password</label>
+                        <input 
+                            type="password" 
+                            id="register-password" 
+                            name="password" 
+                            class="form-input"
+                            placeholder="abc123"
+                            required
+                            autocomplete="new-password"
+                            minlength="6"
+                        >
+                    </div>
+
+                    <button type="submit" class="auth-btn primary">
+                        <span class="btn-text">Crea Account</span>
+                        <div class="btn-loader" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+        </main>
+
+        <footer class="auth-footer">
+            <p>
+                <strong>
+                    <a href="https://docs.google.com/document/d/166FxV4g8O0D9Y1YEr7OKFyLFn4uTenbT6ygy7VtFwzg/edit?usp=sharing">Progetto Ingegneria del Software</a>
+                </strong> 
+                • Università di Bologna • 2024/25
+            </p>
+        </footer>
+        
+    </div>
+
+
+    <script>
+        //SWITCH TRA LOGIN E REGISTRAZIONE
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+
+            function showLoginForm() {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                
+                document.getElementById('registerForm').reset();
+            }
+
+            function showRegisterForm() {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+                
+                document.getElementById('loginForm').reset();
+            }
+
+            loginTab.addEventListener('click', function(e) {
+                e.preventDefault();
+                showLoginForm();
+            });
+
+            registerTab.addEventListener('click', function(e) {
+                e.preventDefault();
+                showRegisterForm();
+            });
+
+        });
+    </script>
+    
+</body>
+</html>
