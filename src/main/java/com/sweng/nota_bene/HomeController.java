@@ -6,6 +6,6 @@ public class HomeController {
 
     @GetMapping("/")
     public String home() {
-        return "Applicazione Spring Boot funzionante! ✅";
+        return "Applicazione Spring Boot funzionante!";
     }
 }
