@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="it">
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <title>NOTA BENE</title>
      <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>"/>
-    <link rel="stylesheet" href="../css/auth.css">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
 </head>
 
 <body>
@@ -172,7 +172,7 @@
         });
     </script>
 
-    <script src="../js/auth.js"></script>
+    <script th:src="@{/js/auth.js}"></script>
     
 </body>
 </html>
