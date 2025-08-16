@@ -119,7 +119,7 @@ nota-bene/
 ```
 
 ##  Autori
-- **Franks Toscani** 
+- **Franks Toscani Koudja** 
 - **Zhiyuan Xie** 
 - **Andrea Croci**
 

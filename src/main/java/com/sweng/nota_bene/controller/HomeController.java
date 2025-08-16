@@ -1,4 +1,4 @@
-package com.sweng.nota_bene;
+package com.sweng.nota_bene.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
