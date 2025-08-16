@@ -2,7 +2,7 @@ package com.sweng.nota_bene.service;
 
 import com.sweng.nota_bene.dto.RegisterRequest;
 import com.sweng.nota_bene.dto.UserResponse;
-import com.sweng.nota_bene.model.User;
+import com.sweng.nota_bene.model.Utente;
 import com.sweng.nota_bene.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class AuthService {
         if (users.existsByNickname(req.nickname()))
             throw new IllegalArgumentException("Nickname già utilizzato");
 
-        User u = new User();
+        Utente u = new Utente();
         u.setEmail(req.email().trim().toLowerCase());
         u.setNickname(req.nickname().trim());
         u.setPasswordHash(encoder.encode(req.password()));
