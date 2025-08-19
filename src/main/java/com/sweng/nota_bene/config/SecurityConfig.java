@@ -16,6 +16,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/note/tags").permitAll() // I tag sono pubblici
+                        .requestMatchers("/api/note/**").permitAll() // TODO: Cambiare quando implementeremo l'autenticazione
+                        .requestMatchers("/ping").permitAll() // Endpoint di test
                         .anyRequest().authenticated()
                 );
         return http.build();
