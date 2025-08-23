@@ -1,5 +1,6 @@
 package com.sweng.nota_bene.controller;
 
+import com.sweng.nota_bene.dto.LoginRequest;
 import com.sweng.nota_bene.dto.RegisterRequest;
 import com.sweng.nota_bene.dto.UserResponse;
 import com.sweng.nota_bene.service.AuthService;
@@ -21,5 +22,17 @@ public class AuthController {
         UserResponse user = auth.register(req);
         // Risposta compatibile col nostro JS: { success: true, user: { id, nickname } }
         return ResponseEntity.ok(Map.of("success", true, "user", user));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        UserResponse user = auth.login(req);
+        return ResponseEntity.ok(Map.of("success", true, "user", user));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        // lato frontend usi sessionStorage: qui basta confermare
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }

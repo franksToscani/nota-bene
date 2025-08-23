@@ -158,7 +158,7 @@ class AuthFormHandler {
 
         // Verifica se l'utente è già autenticato e reindirizza a home.html
         if (AuthService.isAuthenticated()) {
-            window.location.href = 'home.html';
+            window.location.href = '/home';
         }
     }
 
@@ -185,7 +185,7 @@ class AuthFormHandler {
             if (response.success) {
                 this.showSuccessMessage('Login effettuato con successo!');
                 setTimeout(() => {
-                    window.location.href = 'home.html';
+                    window.location.href = '/home';
                 }, 1000);
             } else {
                 this.showError(response.message || 'Credenziali non valide');
