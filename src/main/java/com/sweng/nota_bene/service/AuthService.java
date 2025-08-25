@@ -1,14 +1,15 @@
 package com.sweng.nota_bene.service;
 
-import com.sweng.nota_bene.dto.RegisterRequest;
-import com.sweng.nota_bene.dto.UserResponse;
-import com.sweng.nota_bene.model.Utente;
-import com.sweng.nota_bene.repository.UserRepository;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.sweng.nota_bene.dto.LoginRequest;
+import com.sweng.nota_bene.dto.RegisterRequest;
+import com.sweng.nota_bene.dto.UserResponse;
+import com.sweng.nota_bene.model.Utente;
+import com.sweng.nota_bene.repository.UserRepository;
 
 @Service
 public class AuthService {
@@ -33,7 +34,7 @@ public class AuthService {
         u.setPasswordHash(encoder.encode(req.password()));
         users.save(u);
 
-        return new UserResponse(u.getId(), u.getNickname());
+        return new UserResponse(u.getEmail(), u.getNickname());
     }
 
     @Transactional(readOnly = true)
@@ -43,6 +44,6 @@ public class AuthService {
         if (!encoder.matches(req.password(), u.getPasswordHash())) {
             throw new BadCredentialsException("Credenziali non valide");
         }
-        return new UserResponse(u.getId(), u.getNickname());
+        return new UserResponse(u.getEmail(), u.getNickname());
     }
 }

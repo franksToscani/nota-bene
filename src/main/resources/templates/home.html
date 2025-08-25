@@ -56,137 +56,37 @@
 
     <!-- Notes Container -->
     <div class="notes-container" id="notes-container">
-        <!-- Sample Notes -->
-        <div class="note-card" tabindex="0">
-            <div class="note-header">
-                <h3 class="note-title">Lista della spesa</h3>
-                <div class="note-menu">
-                    <button class="note-menu-btn">⋯</button>
-                </div>
-            </div>
-            <div class="note-content">
-                Latte, pane, uova, pasta, pomodori, mozzarella, basilico. Non dimenticare di comprare anche il caffè che sta finendo!
-            </div>
-            <div class="note-footer">
-                <div class="note-tags">
-                    <span class="note-tag">spesa</span>
-                    <span class="note-tag">casa</span>
-                </div>
-                <div class="note-meta">
-                    <div class="note-sharing">
-                        <div class="sharing-indicator private"></div>
-                        <span>Privata</span>
-                    </div>
-                    <span>•</span>
-                    <span>2 ore fa</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="note-card" tabindex="0">
-            <div class="note-header">
-                <h3 class="note-title">Idee progetto università</h3>
-                <div class="note-menu">
-                    <button class="note-menu-btn">⋯</button>
-                </div>
-            </div>
-            <div class="note-content">
-                App per la gestione delle note condivise - Sistema di versionamento - Organizzazione per tag e cartelle - Collaborazione in tempo reale
-            </div>
-            <div class="note-footer">
-                <div class="note-tags">
-                    <span class="note-tag">università</span>
-                    <span class="note-tag">progetto</span>
-                    <span class="note-tag">idee</span>
-                </div>
-                <div class="note-meta">
-                    <div class="note-sharing">
-                        <div class="sharing-indicator"></div>
-                        <span>Condivisa</span>
-                    </div>
-                    <span>•</span>
-                    <span>1 giorno fa</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="note-card" tabindex="0">
-            <div class="note-header">
-                <h3 class="note-title">Appunti lezione</h3>
-                <div class="note-menu">
-                    <button class="note-menu-btn">⋯</button>
-                </div>
-            </div>
-            <div class="note-content">
-                Ingegneria del Software - Design patterns: Observer, Strategy, Factory. Principi SOLID. Ricordare di rivedere il pattern State per l'esame.
-            </div>
-            <div class="note-footer">
-                <div class="note-tags">
-                    <span class="note-tag">studio</span>
-                    <span class="note-tag">ingegneria</span>
-                </div>
-                <div class="note-meta">
-                    <div class="note-sharing">
-                        <div class="sharing-indicator read-only"></div>
-                        <span>Sola lettura</span>
-                    </div>
-                    <span>•</span>
-                    <span>3 giorni fa</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="note-card" tabindex="0">
-            <div class="note-header">
-                <h3 class="note-title">Ricetta pasta al pomodoro</h3>
-                <div class="note-menu">
-                    <button class="note-menu-btn">⋯</button>
-                </div>
-            </div>
-            <div class="note-content">
-                Ingredienti: 400g pasta, 500g pomodori pelati, aglio, basilico, olio EVO, sale. Preparazione: rosolare l'aglio, aggiungere i pomodori...
-            </div>
-            <div class="note-footer">
-                <div class="note-tags">
-                    <span class="note-tag">cucina</span>
-                    <span class="note-tag">ricette</span>
-                </div>
-                <div class="note-meta">
-                    <div class="note-sharing">
-                        <div class="sharing-indicator"></div>
-                        <span>Condivisa</span>
-                    </div>
-                    <span>•</span>
-                    <span>1 settimana fa</span>
-                </div>
-            </div>
-        </div>
+        <!-- Le note verranno caricate dinamicamente -->
     </div>
 
-    <!-- Empty State (hidden by default) -->
+    <!-- Empty State -->
     <div class="empty-state" id="empty-state" style="display: none;">
         <div class="empty-icon">📝</div>
         <h2 class="empty-title">Nessuna nota trovata</h2>
+        <p>Inizia creando la tua prima nota!</p>
     </div>
 </main>
 
+<!-- Modal per creare/modificare note -->
 <div id="note-modal" class="modal">
     <div class="modal-content">
         <span class="close-btn">&times;</span>
         <h2 id="modal-title">Nuova Nota</h2>
         <form id="note-form">
             <label for="note-title-input">Titolo</label>
-            <input type="text" id="note-title-input" required>
+            <input type="text" id="note-title-input" required maxlength="255" placeholder="Inserisci il titolo...">
 
-            <label for="note-content-input">Contenuto</label>
-            <textarea id="note-content-input" rows="5" required></textarea>
+            <label for="note-content-input">Contenuto (max 280 caratteri)</label>
+            <textarea id="note-content-input" rows="5" required maxlength="280" placeholder="Scrivi qui il contenuto della tua nota..."></textarea>
+            
+            <div class="char-counter">
+                <span id="char-count">0</span>/280 caratteri
+            </div>
 
-            <label for="note-tag-select">Tag (facoltativo)</label>
-            <select id="note-tag-select">
-                <option value="">Nessun tag</option>
-            </select>
-
-            <button type="submit" id="save-note-btn">Salva</button>
+            <div class="modal-actions">
+                <button type="button" class="btn" id="cancel-btn">Annulla</button>
+                <button type="submit" class="btn primary" id="save-note-btn">Crea nota</button>
+            </div>
         </form>
     </div>
 </div>
