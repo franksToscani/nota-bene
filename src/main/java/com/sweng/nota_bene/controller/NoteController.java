@@ -1,0 +1,136 @@
+package com.sweng.nota_bene.controller;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.sweng.nota_bene.dto.CreateNoteRequest;
+import com.sweng.nota_bene.dto.NoteListResponse;
+import com.sweng.nota_bene.dto.NoteResponse;
+import com.sweng.nota_bene.dto.UpdateNoteRequest;
+import com.sweng.nota_bene.dto.UserResponse;
+import com.sweng.nota_bene.service.NoteService;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/note")
+public class NoteController {
+    private final NoteService noteService;
+
+    public NoteController(NoteService noteService) {
+        this.noteService = noteService;
+    }
+
+    /**
+     * Recupera l'email dell'utente autenticato dalla sessione Spring Security
+     */
+    private String getAuthenticatedUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserResponse) {
+            UserResponse user = (UserResponse) authentication.getPrincipal();
+            return user.email(); // Ora usiamo l'email invece del nickname
+        }
+        throw new IllegalStateException("Utente non autenticato");
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createNote(@Valid @RequestBody CreateNoteRequest request) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            NoteResponse nota = noteService.createNote(request, proprietarioEmail);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "nota", nota,
+                    "message", "Nota creata con successo"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateNote(@PathVariable UUID id, @Valid @RequestBody UpdateNoteRequest request) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            NoteResponse nota = noteService.updateNote(id, request, proprietarioEmail);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "nota", nota,
+                    "message", "Nota modificata con successo"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getNoteUtente() {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            List<NoteListResponse> note = noteService.getNoteUtente(proprietarioEmail);
+            
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "note", note
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getNotaById(@PathVariable UUID id) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            NoteResponse nota = noteService.getNotaById(id, proprietarioEmail);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "nota", nota
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteNote(@PathVariable UUID id) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            noteService.deleteNote(id, proprietarioEmail);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Nota eliminata con successo"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+}

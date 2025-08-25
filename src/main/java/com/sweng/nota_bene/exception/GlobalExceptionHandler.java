@@ -2,6 +2,7 @@ package com.sweng.nota_bene.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,5 +28,9 @@ public class GlobalExceptionHandler {
                 .findFirst().map(f -> f.getField() + ": " + f.getDefaultMessage())
                 .orElse("Dati non validi");
         return ResponseEntity.badRequest().body(Map.of("success", false, "message", msg));
+    }
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<?> handleBadCredentials(BadCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Credenziali non valide"));
     }
 }

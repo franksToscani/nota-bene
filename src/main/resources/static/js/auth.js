@@ -1,341 +1,255 @@
-// auth.js - Gestione autenticazione e registrazione per NOTA BENE
+// auth.js - Gestione autenticazione (solo per pagine di login/register)
 
-/**
- * Configurazione API endpoints
- */
-const API_CONFIG = {
-    BASE_URL: '/api',
-    ENDPOINTS: {
-        LOGIN: '/auth/login',
-        REGISTER: '/auth/register',
-        LOGOUT: '/auth/logout'
+(function () {
+    'use strict';
+
+    // Verifica se siamo sulla pagina di autenticazione
+    const isAuthPage = window.location.pathname === '/' || window.location.pathname === '/auth';
+
+    if (!isAuthPage) {
+        // Non eseguire nulla se non siamo sulla pagina di autenticazione
+        return;
     }
-};
 
-/**
- * Utility per gestire le richieste HTTP
- */
-class ApiClient {
     /**
-     * Effettua una richiesta HTTP generica
+     * Verifica se l'utente è già autenticato
      */
-    static async request(endpoint, options = {}) {
-        const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-        
-        const defaultOptions = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            credentials: 'include'
-        };
-
-        const requestOptions = { ...defaultOptions, ...options };
-
+    async function checkIfAlreadyAuthenticated() {
         try {
-            const response = await fetch(url, requestOptions);
-            
-            if (!response.ok) {
-                let errorData;
-                try {
-                    errorData = await response.json();
-                } catch (e) {
-                    errorData = { message: `Errore HTTP ${response.status}` };
+            const response = await fetch('/api/auth/check', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
                 }
-                throw new ApiError(errorData.message || 'Errore del server', response.status, errorData);
-            }
-
-            try {
-                return await response.json();
-            } catch (e) {
-                return await response.text();
-            }
-        } catch (error) {
-            if (error instanceof ApiError) {
-                throw error;
-            }
-            throw new ApiError('Errore di connessione. Verifica la tua connessione internet.', 0, error);
-        }
-    }
-
-    /**
-     * Richiesta POST
-     */
-    static post(endpoint, data) {
-        return this.request(endpoint, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    }
-}
-
-/**
- * Classe personalizzata per gli errori API
- */
-class ApiError extends Error {
-    constructor(message, status, details = null) {
-        super(message);
-        this.name = 'ApiError';
-        this.status = status;
-        this.details = details;
-    }
-}
-
-/**
- * Servizio di autenticazione
- */
-class AuthService {
-    /**
-     * Effettua il login dell'utente
-     */
-    static async login(credentials) {
-        try {
-            const response = await ApiClient.post(API_CONFIG.ENDPOINTS.LOGIN, {
-                nickname: credentials.nickname.trim(),
-                password: credentials.password
             });
-
-            if (response.success && response.user) {
-                sessionStorage.setItem('isAuthenticated', 'true');
-                sessionStorage.setItem('userNickname', response.user.nickname);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.authenticated) {
+                    // Utente già autenticato, reindirizza alla home
+                    window.location.href = '/home';
+                    return true;
+                }
             }
-
-            return response;
+            return false;
         } catch (error) {
-            console.error('Errore durante il login:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Effettua la registrazione dell'utente
-     */
-    static async register(userData) {
-        try {
-            const response = await ApiClient.post(API_CONFIG.ENDPOINTS.REGISTER, {
-                email: userData.email.trim().toLowerCase(),
-                nickname: userData.nickname.trim(),
-                password: userData.password
-            });
-
-            return response;
-        } catch (error) {
-            console.error('Errore durante la registrazione:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Verifica se l'utente è autenticato
-     */
-    static isAuthenticated() {
-        return sessionStorage.getItem('isAuthenticated') === 'true';
-    }
-}
-
-/**
- * Gestore dei form di autenticazione
- */
-class AuthFormHandler {
-    constructor() {
-        this.loginForm = document.getElementById('loginForm');
-        this.registerForm = document.getElementById('registerForm');
-        this.init();
-    }
-
-    /**
-     * Inizializza gli event listener
-     */
-    init() {
-        if (this.loginForm) {
-            this.loginForm.addEventListener('submit', this.handleLogin.bind(this));
-        }
-
-        if (this.registerForm) {
-            this.registerForm.addEventListener('submit', this.handleRegister.bind(this));
-        }
-
-        // Verifica se l'utente è già autenticato e reindirizza a home.html
-        if (AuthService.isAuthenticated()) {
-            window.location.href = 'home.html';
+            console.error('Errore durante il controllo autenticazione:', error);
+            return false;
         }
     }
 
     /**
      * Gestisce il submit del form di login
      */
-    async handleLogin(event) {
+    async function handleLogin(event) {
         event.preventDefault();
-
-        const submitButton = this.loginForm.querySelector('button[type="submit"]');
-        const formData = new FormData(this.loginForm);
-
-        const credentials = {
-            nickname: formData.get('nickname'),
-            password: formData.get('password')
-        };
+        
+        const form = event.target;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const buttonText = submitButton.querySelector('.btn-text');
+        const buttonLoader = submitButton.querySelector('.btn-loader');
+        
+        // Disabilita il form durante il submit
+        submitButton.disabled = true;
+        buttonText.style.display = 'none';
+        buttonLoader.style.display = 'block';
 
         try {
-            this.setButtonLoading(submitButton, true);
-            this.clearMessages();
+            const formData = new FormData(form);
+            const loginData = {
+                nickname: formData.get('nickname'),
+                password: formData.get('password')
+            };
 
-            const response = await AuthService.login(credentials);
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(loginData)
+            });
 
-            if (response.success) {
-                this.showSuccessMessage('Login effettuato con successo!');
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Login riuscito
+                showNotification('Login effettuato con successo!', 'success');
+                // Attendi un momento prima del redirect per mostrare il messaggio
                 setTimeout(() => {
-                    window.location.href = 'home.html';
+                    window.location.href = '/home';
                 }, 1000);
             } else {
-                this.showError(response.message || 'Credenziali non valide');
+                // Login fallito
+                showNotification(data.message || 'Errore durante il login', 'error');
             }
 
         } catch (error) {
-            this.handleAuthError(error, 'login');
+            console.error('Errore durante il login:', error);
+            showNotification('Errore di connessione', 'error');
         } finally {
-            this.setButtonLoading(submitButton, false);
+            // Riabilita il form
+            submitButton.disabled = false;
+            buttonText.style.display = 'inline';
+            buttonLoader.style.display = 'none';
         }
     }
 
     /**
      * Gestisce il submit del form di registrazione
      */
-    async handleRegister(event) {
+    async function handleRegister(event) {
         event.preventDefault();
-
-        const submitButton = this.registerForm.querySelector('button[type="submit"]');
-        const formData = new FormData(this.registerForm);
-
-        const userData = {
-            email: formData.get('email'),
-            nickname: formData.get('nickname'),
-            password: formData.get('password')
-        };
+        
+        const form = event.target;
+        const submitButton = form.querySelector('button[type="submit"]');
+        const buttonText = submitButton.querySelector('.btn-text');
+        const buttonLoader = submitButton.querySelector('.btn-loader');
+        
+        // Disabilita il form durante il submit
+        submitButton.disabled = true;
+        buttonText.style.display = 'none';
+        buttonLoader.style.display = 'block';
 
         try {
-            this.setButtonLoading(submitButton, true);
-            this.clearMessages();
+            const formData = new FormData(form);
+            const registerData = {
+                email: formData.get('email'),
+                nickname: formData.get('nickname'),
+                password: formData.get('password')
+            };
 
-            const response = await AuthService.register(userData);
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(registerData)
+            });
 
-            if (response.success) {
-                this.showSuccessMessage('Registrazione completata! Reindirizzamento in corso...');
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Registrazione riuscita
+                showNotification('Registrazione completata con successo!', 'success');
+                // Attendi un momento prima del redirect per mostrare il messaggio
                 setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+                    window.location.href = '/home';
+                }, 1000);
             } else {
-                this.showError(response.message || 'Errore durante la registrazione. Verifica i dati inseriti');
+                // Registrazione fallita
+                showNotification(data.message || 'Errore durante la registrazione', 'error');
             }
 
         } catch (error) {
-            this.handleAuthError(error, 'register');
+            console.error('Errore durante la registrazione:', error);
+            showNotification('Errore di connessione', 'error');
         } finally {
-            this.setButtonLoading(submitButton, false);
+            // Riabilita il form
+            submitButton.disabled = false;
+            buttonText.style.display = 'inline';
+            buttonLoader.style.display = 'none';
         }
     }
 
     /**
-     * Gestisce gli errori di autenticazione
+     * Mostra una notifica all'utente
      */
-    handleAuthError(error, type = 'login') {
-        if (error instanceof ApiError) {
-            if (type === 'login') {
-                this.showError('Credenziali non valide');
-            } else if (type === 'register') {
-                this.showError('Errore durante la registrazione. Verifica i dati inseriti');
+    function showNotification(message, type = 'info') {
+        // Rimuovi eventuali notifiche precedenti
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(notif => notif.remove());
+
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        `;
+
+        // Aggiungi gli stili per i colori
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
             }
-        } else {
-            this.showError('Errore di connessione. Verifica la tua connessione internet.');
-        }
-    }
-
-    /**
-     * Mostra un messaggio di errore
-     */
-    showError(message) {
-        this.clearMessages();
-        
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.style.cssText = `
-            background-color: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 14px;
+            .notification-success { background-color: #16a34a; }
+            .notification-error { background-color: #dc2626; }
+            .notification-info { background-color: #2563eb; }
         `;
-        errorDiv.textContent = message;
-
-        const activeForm = document.querySelector('.form-container.active');
-        if (activeForm) {
-            activeForm.insertBefore(errorDiv, activeForm.querySelector('.auth-form'));
+        if (!document.head.querySelector('style[data-notifications]')) {
+            style.setAttribute('data-notifications', '');
+            document.head.appendChild(style);
         }
-    }
 
-    /**
-     * Mostra un messaggio di successo
-     */
-    showSuccessMessage(message) {
-        this.clearMessages();
-        
-        const successDiv = document.createElement('div');
-        successDiv.className = 'success-message';
-        successDiv.style.cssText = `
-            background-color: #efe;
-            border: 1px solid #cfc;
-            color: #363;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        `;
-        successDiv.textContent = message;
-
-        const activeForm = document.querySelector('.form-container.active');
-        if (activeForm) {
-            activeForm.insertBefore(successDiv, activeForm.querySelector('.auth-form'));
-        }
-    }
-
-    /**
-     * Pulisce tutti i messaggi esistenti
-     */
-    clearMessages() {
-        const existingMessages = document.querySelectorAll('.error-message, .success-message');
-        existingMessages.forEach(msg => msg.remove());
-    }
-
-    /**
-     * Imposta lo stato di caricamento del bottone
-     */
-    setButtonLoading(button, loading) {
-        const btnText = button.querySelector('.btn-text');
-        const btnLoader = button.querySelector('.btn-loader');
-
-        if (loading) {
-            button.disabled = true;
-            button.classList.add('loading');
-            btnText.style.opacity = '0';
-            btnLoader.style.display = 'block';
+        if (type === 'success') {
+            notification.style.backgroundColor = '#16a34a';
+        } else if (type === 'error') {
+            notification.style.backgroundColor = '#dc2626';
         } else {
-            button.disabled = false;
-            button.classList.remove('loading');
-            btnText.style.opacity = '1';
-            btnLoader.style.display = 'none';
+            notification.style.backgroundColor = '#2563eb';
         }
+
+        document.body.appendChild(notification);
+
+        // Rimuovi la notifica dopo 4 secondi
+        setTimeout(() => {
+            notification.remove();
+        }, 4000);
     }
-}
 
-/**
- * Inizializzazione quando il DOM è carico
- */
-document.addEventListener('DOMContentLoaded', function() {
-    new AuthFormHandler();
-});
+    /**
+     * Inizializza la pagina di autenticazione
+     */
+    async function initAuthPage() {
+        // Controlla se l'utente è già autenticato
+        const alreadyAuthenticated = await checkIfAlreadyAuthenticated();
+        if (alreadyAuthenticated) {
+            return; // Il reindirizzamento è già stato fatto
+        }
 
-// Esporta le classi per uso esterno
-window.AuthService = AuthService;
-window.ApiClient = ApiClient;
+        // Configura gli event listeners per i form
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', handleLogin);
+        }
+
+        if (registerForm) {
+            registerForm.addEventListener('submit', handleRegister);
+        }
+
+        // I tab switcher sono già gestiti nell'HTML
+        console.log('Pagina di autenticazione inizializzata');
+    }
+
+    // Inizializza quando il DOM è pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAuthPage);
+    } else {
+        initAuthPage();
+    }
+
+})();
