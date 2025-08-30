@@ -322,6 +322,8 @@ class NotePageHandler {
         const noteCard = document.createElement('div');
         noteCard.className = 'note-card';
         noteCard.dataset.noteId = note.id;
+        noteCard.dataset.fullContent = note.contenuto;
+
 
         const formattedDate = this.formatDate(note.dataUltimaModifica);
         const truncatedContent = this.truncateContent(note.contenuto, 150);
