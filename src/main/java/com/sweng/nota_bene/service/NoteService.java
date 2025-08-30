@@ -17,19 +17,29 @@ import com.sweng.nota_bene.repository.NoteRepository;
 @Service
 public class NoteService {
     private final NoteRepository noteRepository;
+    private final TagService tagService;
 
-    public NoteService(NoteRepository noteRepository) {
+    public NoteService(NoteRepository noteRepository, TagService tagService) {
         this.noteRepository = noteRepository;
+        this.tagService = tagService;
     }
 
     @Transactional
     public NoteResponse createNote(CreateNoteRequest request, String proprietarioEmail) {
-        // Creazione della nota - versione semplificata
         Note note = new Note();
         note.setTitolo(request.titolo());
         note.setContenuto(request.contenuto());
-        note.setProprietario(proprietarioEmail); // Ora usiamo l'email
-        // idCartella e tag rimangono null per la versione semplificata
+        note.setProprietario(proprietarioEmail);
+        
+        // Gestione del tag
+        if (request.tagId() != null && !request.tagId().trim().isEmpty()) {
+            String tagNome = request.tagId().trim();
+            if (tagService.existsByNome(tagNome)) {
+                note.setTag(tagNome);
+            } else {
+                throw new IllegalArgumentException("Tag non valido: " + tagNome);
+            }
+        }
         
         note = noteRepository.save(note);
         return mapToNoteResponse(note);
@@ -55,19 +65,29 @@ public class NoteService {
 
     @Transactional
     public NoteResponse updateNote(UUID id, UpdateNoteRequest request, String proprietarioEmail) {
-        // Trova la nota esistente
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));
         
-        // Verifica i permessi
         if (!note.getProprietario().equals(proprietarioEmail)) {
             throw new IllegalArgumentException("Non hai i permessi per modificare questa nota");
         }
 
-        // Aggiorna solo titolo e contenuto
+        // Aggiorna titolo e contenuto
         note.setTitolo(request.titolo());
         note.setContenuto(request.contenuto());
-        // La data di ultima modifica viene aggiornata automaticamente dal @PreUpdate
+        
+        // Gestione del tag
+        if (request.tagId() != null && !request.tagId().trim().isEmpty()) {
+            String tagNome = request.tagId().trim();
+            if (tagService.existsByNome(tagNome)) {
+                note.setTag(tagNome);
+            } else {
+                throw new IllegalArgumentException("Tag non valido: " + tagNome);
+            }
+        } else {
+            // Se tagId è null o vuoto, rimuovi il tag
+            note.setTag(null);
+        }
         
         note = noteRepository.save(note);
         return mapToNoteResponse(note);
@@ -75,16 +95,13 @@ public class NoteService {
 
     @Transactional
     public void deleteNote(UUID id, String proprietarioEmail) {
-        // Trova la nota esistente
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));
         
-        // Verifica i permessi
         if (!note.getProprietario().equals(proprietarioEmail)) {
             throw new IllegalArgumentException("Non hai i permessi per eliminare questa nota");
         }
 
-        // Elimina la nota
         noteRepository.delete(note);
     }
 

@@ -21,7 +21,8 @@ public class SecurityConfig {
                     "/css/**",
                     "/js/**", 
                     "/images/**",
-                    "/home" // Permetti accesso alla pagina home (il JS gestirà l'autenticazione)
+                    "/home",  // Permetti accesso alla pagina home (il JS gestirà l'autenticazione)
+                    "/form"   // Permetti accesso alla pagina form (il JS gestirà l'autenticazione)
                 ).permitAll()
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/check").permitAll() // Endpoint per verificare autenticazione

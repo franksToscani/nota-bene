@@ -11,5 +11,6 @@ public record UpdateNoteRequest(
         
         @NotBlank(message = "Il contenuto è obbligatorio")
         @Size(max = 280, message = "Il contenuto non può superare i 280 caratteri")
-        String contenuto
+        String contenuto,
+        String tagId
 ) {}

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOTA BENE - Gestione Nota</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>"/>
+    <link rel="stylesheet" th:href="@{/css/form.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/home" class="logo">
+                <!--<div class="logo-icon">📝</div>-->
+                <div class="logo-text">NOTA BENE</div>
+            </a>
+
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">?</div>
+                    <span id="user-name">Utente</span>
+                </div>
+                <button class="btn danger" id="logout-btn">
+                    Esci
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="form-container">
+            <div class="form-header">
+                <h1 class="form-title" id="form-title">Nuova Nota</h1>
+            </div>
+
+            <form id="note-form" class="note-form">
+                <div class="form-group">
+                    <label for="note-title-input">Titolo</label>
+                    <input type="text" id="note-title-input" required maxlength="255" placeholder="Inserisci il titolo...">
+                </div>
+
+                <div class="form-group">
+                    <label for="note-tag-select">Tag</label>
+                    <select id="note-tag-select">
+                        <option value="">Caricamento tag...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="note-content-input">Contenuto (max 280 caratteri)</label>
+                    <textarea id="note-content-input" rows="8" required maxlength="280" placeholder="Scrivi qui il contenuto della tua nota..."></textarea>
+                    <div class="char-counter">
+                        <span id="char-count">0</span>/280 caratteri
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn secondary" id="cancel-btn">Annulla</button>
+                    <button type="submit" class="btn primary" id="save-note-btn">Crea nota</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script th:src="@{/js/form.js}"></script>
+</body>
+</html>

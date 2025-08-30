@@ -15,5 +15,4 @@ public class HomeController {
     public String home() {
         return "home"; // templates/home.html
     }
-
 }
