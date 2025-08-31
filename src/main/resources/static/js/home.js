@@ -288,10 +288,6 @@ class NotePageHandler {
      * Elimina una nota
      */
     async deleteNote(noteId) {
-        if (!confirm('Sei sicuro di voler eliminare questa nota? Questa azione non può essere annullata.')) {
-            return;
-        }
-
         try {
             const response = await fetch(`/api/note/${noteId}`, {
                 method: 'DELETE',
