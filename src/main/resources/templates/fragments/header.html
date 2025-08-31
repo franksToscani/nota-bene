@@ -1,0 +1,28 @@
+<!-- templates/fragments/header.html -->
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- Header Fragment -->
+    <header class="header" th:fragment="main-header">
+        <div class="header-content">
+            <a th:href="@{/home}" class="logo">
+                <div class="logo-icon">📝</div>
+                <div class="logo-text">NOTA BENE</div>
+            </a>
+
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">?</div>
+                    <span id="user-name">Utente</span>
+                </div>
+                <button class="btn danger" id="logout-btn">
+                    Esci
+                </button>
+            </div>
+        </div>
+    </header>
+</body>
+</html>

@@ -1,5 +1,4 @@
-// form.js - Gestione form di creazione/modifica nota con permessi
-
+// form.js - Versione semplificata con funzioni comuni rimosse
 (function () {
     'use strict';
 
@@ -11,76 +10,11 @@
     }
 
     /**
-     * Verifica autenticazione tramite server
-     */
-    async function checkAuthentication() {
-        try {
-            const response = await fetch('/api/auth/check', {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                return data;
-            }
-            return { authenticated: false };
-        } catch (error) {
-            console.error('Errore durante il controllo autenticazione:', error);
-            return { authenticated: false };
-        }
-    }
-
-    /**
-     * Genera le iniziali dal nickname
-     */
-    function getInitials(name) {
-        const parts = name.trim().split(/\s+/);
-        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-
-    /**
-     * Configura il pulsante di logout
-     */
-    function setupLogout() {
-        const logoutBtn = document.getElementById('logout-btn');
-        
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                
-                try {
-                    logoutBtn.disabled = true;
-                    logoutBtn.textContent = 'Disconnessione...';
-                    
-                    await fetch('/api/auth/logout', {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error('Errore durante il logout:', error);
-                } finally {
-                    window.location.href = '/';
-                }
-            });
-        }
-    }
-
-    /**
      * Inizializzazione della pagina form
      */
     async function initFormPage() {
         // Guard: verifica se l'utente è autenticato
-        const authData = await checkAuthentication();
+        const authData = await checkAuthentication(); // Usa la funzione comune!
         
         if (!authData.authenticated) {
             console.log('Utente non autenticato, reindirizzamento al login...');
@@ -88,20 +22,8 @@
             return;
         }
 
-        // Popola le informazioni dell'utente
-        const user = authData.user;
-        if (user) {
-            const nameEl = document.getElementById('user-name');
-            const avatarEl = document.getElementById('user-avatar');
-
-            if (nameEl) nameEl.textContent = user.nickname;
-            if (avatarEl) avatarEl.textContent = getInitials(user.nickname);
-        }
-
-        // Configura il logout
-        setupLogout();
-        
-        // Inizializza il gestore del form
+        // L'header è già stato popolato dagli script comuni!
+        // Inizializza solo il gestore del form
         new NoteFormHandler();
     }
 
@@ -136,11 +58,11 @@ class NoteFormHandler {
         this.sharedUsersList = document.getElementById('shared-users-list');
         
         this.currentNoteId = null;
-        this.mode = 'create'; // 'create' or 'edit'
-        this.tags = []; // Cache dei tag disponibili
-        this.sharedUsers = []; // Lista degli utenti con cui è condivisa la nota
-        this.currentUserEmail = null; // Email dell'utente corrente
-        this.isOwner = true; // Flag per sapere se l'utente corrente è il proprietario della nota
+        this.mode = 'create';
+        this.tags = [];
+        this.sharedUsers = [];
+        this.currentUserEmail = null;
+        this.isOwner = true;
 
         this.init();
         this.loadTags();
@@ -195,10 +117,7 @@ class NoteFormHandler {
             });
         }
 
-        // Aggiorna il contatore iniziale
         this.updateCharCount();
-        
-        // Aggiorna la lista di condivisione iniziale
         this.updateSharedUsersList();
     }
 
@@ -235,16 +154,12 @@ class NoteFormHandler {
     populateTagSelect() {
         if (!this.tagSelect) return;
 
-        // Pulisci il select
         this.tagSelect.innerHTML = '';
-
-        // Opzione vuota (nessun tag)
         const emptyOption = document.createElement('option');
         emptyOption.value = '';
         emptyOption.textContent = 'Nessun tag';
         this.tagSelect.appendChild(emptyOption);
 
-        // Aggiungi i tag disponibili
         this.tags.forEach(tag => {
             const option = document.createElement('option');
             option.value = tag.id;
@@ -295,7 +210,6 @@ class NoteFormHandler {
             this.saveBtn.textContent = 'Crea nota';
         }
         
-        // Focus sul campo titolo
         if (this.titleInput) {
             this.titleInput.focus();
         }
@@ -316,21 +230,18 @@ class NoteFormHandler {
 
             if (response.ok) {
                 const note = await response.json();
-                console.log('Nota caricata:', note);
                 
                 if (this.titleInput) this.titleInput.value = note.titolo || '';
                 if (this.contentInput) this.contentInput.value = note.contenuto || '';
                 
-                // Imposta il tag se presente - il tag arriva come stringa dal server
                 if (this.tagSelect && note.tag) {
-                    // Aspetta che i tag siano caricati prima di impostare il valore
                     if (this.tags.length === 0) {
                         await this.loadTags();
                     }
                     this.tagSelect.value = note.tag;
                 }
                 
-                // Ottieni l'email dell'utente corrente per verificare se è il proprietario
+                // Ottieni l'email dell'utente corrente
                 const authResponse = await fetch('/api/auth/check', {
                     method: 'GET',
                     credentials: 'include',
@@ -343,11 +254,8 @@ class NoteFormHandler {
                     this.isOwner = this.currentUserEmail === note.proprietario;
                 }
                 
-                // Carica le condivisioni esistenti
                 this.sharedUsers = note.condivisioni || [];
                 this.updateSharedUsersList();
-                
-                // Mostra/nascondi la sezione condivisioni in base ai permessi
                 this.updateSharingSection();
                 
                 if (this.formTitle) this.formTitle.textContent = 'Modifica Nota';
@@ -355,21 +263,19 @@ class NoteFormHandler {
                 
                 this.updateCharCount();
                 
-                // Focus sul campo titolo
                 if (this.titleInput) {
                     this.titleInput.focus();
                 }
             } else if (response.status === 400) {
                 const errorData = await response.json();
-                this.showNotification(errorData.message || 'Non hai i permessi per accedere a questa nota', 'error');
+                showNotification(errorData.message || 'Non hai i permessi per accedere a questa nota', 'error'); // Usa la funzione comune!
                 this.goBack();
             } else {
-                this.showNotification('Errore nel caricamento della nota', 'error');
+                showNotification('Errore nel caricamento della nota', 'error'); // Usa la funzione comune!
                 this.goBack();
             }
         } catch (error) {
-            console.error('Errore nel caricamento della nota:', error);
-            this.showNotification('Errore di connessione', 'error');
+            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
             this.goBack();
         }
     }
@@ -382,10 +288,8 @@ class NoteFormHandler {
         if (!sharingSection) return;
 
         if (this.mode === 'create' || this.isOwner) {
-            // Mostra la sezione condivisioni per nuove note o se sei il proprietario
             sharingSection.style.display = 'block';
         } else {
-            // Nascondi la sezione condivisioni se non sei il proprietario
             sharingSection.style.display = 'none';
         }
     }
@@ -416,39 +320,33 @@ class NoteFormHandler {
         const permission = this.permissionSelect.value;
 
         if (!email) {
-            this.showNotification('Inserire un indirizzo email', 'error');
+            showNotification('Inserire un indirizzo email', 'error'); // Usa la funzione comune!
             return;
         }
 
-        // Validazione email base
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            this.showNotification('Inserire un indirizzo email valido', 'error');
+            showNotification('Inserire un indirizzo email valido', 'error'); // Usa la funzione comune!
             return;
         }
 
-        // Impedisci di condividere con se stessi
         if (email === this.currentUserEmail) {
-            this.showNotification('Non puoi condividere la nota con te stesso', 'error');
+            showNotification('Non puoi condividere la nota con te stesso', 'error'); // Usa la funzione comune!
             return;
         }
 
-        // Controlla se l'utente è già nella lista
         const existingUser = this.sharedUsers.find(user => user.emailUtente === email);
         if (existingUser) {
-            // Aggiorna il permesso se l'utente esiste già
             existingUser.tipo = permission;
-            this.showNotification('Permessi aggiornati per questo utente', 'info');
+            showNotification('Permessi aggiornati per questo utente', 'info'); // Usa la funzione comune!
         } else {
-            // Aggiungi nuovo utente
             this.sharedUsers.push({
                 emailUtente: email,
                 tipo: permission
             });
-            this.showNotification('Utente aggiunto alla condivisione', 'success');
+            showNotification('Utente aggiunto alla condivisione', 'success'); // Usa la funzione comune!
         }
 
-        // Pulisci il campo email e aggiorna la lista
         this.shareEmailInput.value = '';
         this.updateSharedUsersList();
     }
@@ -459,7 +357,7 @@ class NoteFormHandler {
     removeSharedUser(email) {
         this.sharedUsers = this.sharedUsers.filter(user => user.emailUtente !== email);
         this.updateSharedUsersList();
-        this.showNotification('Utente rimosso dalla condivisione', 'info');
+        showNotification('Utente rimosso dalla condivisione', 'info'); // Usa la funzione comune!
     }
 
     /**
@@ -470,7 +368,7 @@ class NoteFormHandler {
         if (user) {
             user.tipo = newPermission;
             this.updateSharedUsersList();
-            this.showNotification('Permessi aggiornati', 'success');
+            showNotification('Permessi aggiornati', 'success'); // Usa la funzione comune!
         }
     }
 
@@ -480,7 +378,6 @@ class NoteFormHandler {
     updateSharedUsersList() {
         if (!this.sharedUsersList) return;
 
-        // Pulisci la lista
         this.sharedUsersList.innerHTML = '';
 
         if (this.sharedUsers.length === 0) {
@@ -491,7 +388,6 @@ class NoteFormHandler {
             return;
         }
 
-        // Aggiungi ogni utente condiviso
         this.sharedUsers.forEach(user => {
             const userItem = this.createSharedUserItem(user);
             this.sharedUsersList.appendChild(userItem);
@@ -508,18 +404,14 @@ class NoteFormHandler {
         const userInfo = document.createElement('div');
         userInfo.className = 'shared-user-info';
 
-        // Email dell'utente
         const email = document.createElement('div');
         email.className = 'shared-user-email';
         email.textContent = user.emailUtente;
 
-        // Container per il ruolo
         const roleContainer = document.createElement('div');
         roleContainer.className = 'shared-user-role-container';
 
-        // Solo il proprietario può modificare i permessi
         if (this.mode === 'create' || this.isOwner) {
-            // Select per cambiare permesso integrato nel layout
             const permissionSelect = document.createElement('select');
             permissionSelect.className = 'permission-select-inline';
             permissionSelect.innerHTML = `
@@ -532,7 +424,6 @@ class NoteFormHandler {
             
             roleContainer.appendChild(permissionSelect);
         } else {
-            // Solo visualizzazione del ruolo se non si può modificare
             const permissionText = document.createElement('span');
             permissionText.className = 'permission-readonly';
             permissionText.textContent = user.tipo === 'lettura' ? 'Lettore' : 'Scrittore';
@@ -542,11 +433,9 @@ class NoteFormHandler {
         userInfo.appendChild(email);
         userInfo.appendChild(roleContainer);
 
-        // Azioni (solo pulsante rimuovi)
         const actions = document.createElement('div');
         actions.className = 'shared-user-actions';
 
-        // Pulsante rimuovi (solo se proprietario)
         if (this.mode === 'create' || this.isOwner) {
             const removeBtn = document.createElement('button');
             removeBtn.type = 'button';
@@ -566,7 +455,7 @@ class NoteFormHandler {
     }
 
     /**
-     * Salva la nota (crea o modifica) con le condivisioni
+     * Salva la nota (crea o modifica) con le condivisiones
      */
     async saveNote() {
         const titolo = this.titleInput.value.trim();
@@ -574,12 +463,12 @@ class NoteFormHandler {
         const tagId = this.tagSelect.value || null;
 
         if (!titolo || !contenuto) {
-            this.showNotification('Titolo e contenuto sono obbligatori', 'error');
+            showNotification('Titolo e contenuto sono obbligatori', 'error'); // Usa la funzione comune!
             return;
         }
 
         if (contenuto.length > 280) {
-            this.showNotification('Il contenuto non può superare i 280 caratteri', 'error');
+            showNotification('Il contenuto non può superare i 280 caratteri', 'error'); // Usa la funzione comune!
             return;
         }
 
@@ -593,7 +482,6 @@ class NoteFormHandler {
                 tagId
             };
 
-            // Include le condivisioni solo se sei il proprietario o stai creando una nuova nota
             if (this.mode === 'create' || this.isOwner) {
                 requestBody.condivisioni = this.sharedUsers;
             }
@@ -601,7 +489,6 @@ class NoteFormHandler {
             let response;
             
             if (this.mode === 'edit') {
-                // Modifica nota esistente
                 response = await fetch(`/api/note/${this.currentNoteId}`, {
                     method: 'PUT',
                     credentials: 'include',
@@ -612,7 +499,6 @@ class NoteFormHandler {
                     body: JSON.stringify(requestBody)
                 });
             } else {
-                // Crea nuova nota
                 response = await fetch('/api/note', {
                     method: 'POST',
                     credentials: 'include',
@@ -625,26 +511,21 @@ class NoteFormHandler {
             }
 
             if (response.ok) {
-                const data = await response.json();
-                console.log('Risposta salvataggio nota:', data);
-                this.showNotification(
+                showNotification(
                     this.mode === 'edit' ? 'Nota modificata con successo!' : 'Nota creata con successo!', 
                     'success'
-                );
+                ); // Usa la funzione comune!
                 
-                // Torna alla home dopo un breve delay
                 setTimeout(() => {
                     this.goBack();
                 }, 1000);
             } else {
                 const errorData = await response.json();
-                console.error('Errore salvataggio nota:', errorData);
-                this.showNotification(errorData.message || 'Errore nel salvataggio della nota', 'error');
+                showNotification(errorData.message || 'Errore nel salvataggio della nota', 'error'); // Usa la funzione comune!
             }
 
         } catch (error) {
-            console.error('Errore nel salvataggio:', error);
-            this.showNotification('Errore di connessione', 'error');
+            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
         } finally {
             this.saveBtn.disabled = false;
             this.saveBtn.textContent = this.mode === 'edit' ? 'Salva modifiche' : 'Crea nota';
@@ -656,67 +537,5 @@ class NoteFormHandler {
      */
     goBack() {
         window.location.href = '/home';
-    }
-
-    /**
-     * Mostra notifica
-     */
-    showNotification(message, type = 'info') {
-        // Rimuovi eventuali notifiche precedenti
-        const existingNotifications = document.querySelectorAll('.notification');
-        existingNotifications.forEach(notif => notif.remove());
-
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 6px;
-            color: white;
-            font-weight: 500;
-            z-index: 10000;
-            animation: slideInRight 0.3s ease;
-            max-width: 300px;
-        `;
-
-        // Aggiungi gli stili per i colori se non esistono già
-        if (!document.head.querySelector('style[data-notifications]')) {
-            const style = document.createElement('style');
-            style.setAttribute('data-notifications', '');
-            style.textContent = `
-                @keyframes slideInRight {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-                .notification-success { background-color: #16a34a; }
-                .notification-error { background-color: #dc2626; }
-                .notification-info { background-color: #2563eb; }
-            `;
-            document.head.appendChild(style);
-        }
-
-        if (type === 'success') {
-            notification.style.backgroundColor = '#16a34a';
-        } else if (type === 'error') {
-            notification.style.backgroundColor = '#dc2626';
-        } else {
-            notification.style.backgroundColor = '#2563eb';
-        }
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
     }
 }

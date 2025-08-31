@@ -6,26 +6,12 @@
     <title>NOTA BENE - Gestione Nota</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>"/>
     <link rel="stylesheet" th:href="@{/css/form.css}">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <a href="/home" class="logo">
-                <div class="logo-text">NOTA BENE</div>
-            </a>
-
-            <div class="header-actions">
-                <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">?</div>
-                    <span id="user-name">Utente</span>
-                </div>
-                <button class="btn danger" id="logout-btn">
-                    Esci
-                </button>
-            </div>
-        </div>
-    </header>
+    <div th:replace="fragments/header :: main-header"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -85,5 +71,6 @@
     </main>
 
     <script th:src="@{/js/form.js}"></script>
+    <div th:replace="fragments/scripts :: auth-scripts"></div>
 </body>
 </html>

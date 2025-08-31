@@ -1,5 +1,4 @@
-// home.js - Header dinamico + logout + guard + gestione note semplificata
-
+// home.js - Versione semplificata con funzioni comuni rimosse
 (function () {
     'use strict';
 
@@ -8,30 +7,6 @@
 
     if (!isHomePage) {
         return;
-    }
-
-    /**
-     * Verifica autenticazione tramite server
-     */
-    async function checkAuthentication() {
-        try {
-            const response = await fetch('/api/auth/check', {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                return data;
-            }
-            return { authenticated: false };
-        } catch (error) {
-            console.error('Errore durante il controllo autenticazione:', error);
-            return { authenticated: false };
-        }
     }
 
     /**
@@ -47,62 +22,9 @@
             return;
         }
 
-        // Popola le informazioni dell'utente
-        const user = authData.user;
-        if (user) {
-            const nameEl = document.getElementById('user-name');
-            const avatarEl = document.getElementById('user-avatar');
-
-            if (nameEl) nameEl.textContent = user.nickname;
-            if (avatarEl) avatarEl.textContent = getInitials(user.nickname);
-        }
-
-        // Configura il logout
-        setupLogout();
-        
-        // Inizializza il gestore delle note
+        // L'header è già stato popolato dagli script comuni!
+        // Inizializza solo il gestore delle note
         new NotePageHandler();
-    }
-
-    /**
-     * Genera le iniziali dal nickname
-     */
-    function getInitials(name) {
-        const parts = name.trim().split(/\s+/);
-        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-
-    /**
-     * Configura il pulsante di logout
-     */
-    function setupLogout() {
-        const logoutBtn = document.getElementById('logout-btn');
-        
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                
-                try {
-                    logoutBtn.disabled = true;
-                    logoutBtn.textContent = 'Disconnessione...';
-                    
-                    await fetch('/api/auth/logout', {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error('Errore durante il logout:', error);
-                } finally {
-                    window.location.href = '/';
-                }
-            });
-        }
     }
 
     // Inizializza quando il DOM è pronto
@@ -115,17 +37,17 @@
 })();
 
 /**
- * Gestore delle note - Versione semplificata per sola visualizzazione
+ * Gestore delle note - Versione semplificata
  */
 class NotePageHandler {
     constructor() {
         this.notesContainer = document.getElementById('notes-container');
         this.emptyState = document.getElementById('empty-state');
         this.searchInput = document.getElementById('search-input');
-        this.notes = []; // Cache locale delle note
-        this.filteredNotes = []; // Note filtrate per la ricerca
-        this.activeDropdown = null; // Riferimento al dropdown attivo
-        this.currentUserEmail = null; // Email dell'utente corrente
+        this.notes = [];
+        this.filteredNotes = [];
+        this.activeDropdown = null;
+        this.currentUserEmail = null;
 
         this.init();
         this.loadCurrentUser();
@@ -153,7 +75,6 @@ class NotePageHandler {
                 const noteCard = e.target.closest('.note-card');
                 if (!noteCard) return;
 
-                // Gestione del menu a tendina
                 if (e.target.classList.contains('note-menu-btn')) {
                     e.stopPropagation();
                     const noteId = noteCard.dataset.noteId;
@@ -167,7 +88,6 @@ class NotePageHandler {
                     }
                     this.closeDropdown();
                 } else {
-                    // Click sulla nota per espandere
                     this.toggleNoteExpansion(noteCard);
                 }
             });
@@ -215,15 +135,12 @@ class NotePageHandler {
      * Toggle espansione della nota
      */
     toggleNoteExpansion(noteCard) {
-        // Chiudi altre note espanse
         const expandedCards = this.notesContainer.querySelectorAll('.note-card.expanded');
         expandedCards.forEach(card => {
             if (card !== noteCard) {
                 card.classList.remove('expanded');
             }
         });
-
-        // Toggle espansione della nota corrente
         noteCard.classList.toggle('expanded');
     }
 
@@ -231,17 +148,14 @@ class NotePageHandler {
      * Gestisce l'apertura/chiusura del dropdown
      */
     toggleDropdown(menuBtn, noteId) {
-        // Se c'è già un dropdown aperto, chiudilo
         if (this.activeDropdown) {
             this.closeDropdown();
         }
 
-        // Se stiamo riaprendo lo stesso dropdown, non fare nulla
         if (this.activeDropdown && this.activeDropdown.previousElementSibling === menuBtn) {
             return;
         }
 
-        // Crea il dropdown
         const dropdown = document.createElement('div');
         dropdown.className = 'note-menu-dropdown';
         dropdown.innerHTML = `
@@ -249,10 +163,8 @@ class NotePageHandler {
             <button class="note-menu-item delete">Elimina</button>
         `;
 
-        // Aggiungi il dropdown dopo il pulsante
         menuBtn.parentNode.appendChild(dropdown);
         
-        // Mostra il dropdown con animazione
         setTimeout(() => {
             dropdown.classList.add('show');
         }, 10);
@@ -290,10 +202,8 @@ class NotePageHandler {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Dati ricevuti dal server:', data);
                 this.notes = data.note || [];
                 this.filteredNotes = [...this.notes];
-                console.log('Note caricate:', this.notes);
                 this.renderNotes();
             } else {
                 console.error('Errore nel caricamento delle note', response.status);
@@ -309,11 +219,7 @@ class NotePageHandler {
      * Renderizza le note nell'interfaccia
      */
     renderNotes() {
-        console.log('Renderizzando note:', this.filteredNotes.length);
-        if (!this.notesContainer) {
-            console.error('Container delle note non trovato!');
-            return;
-        }
+        if (!this.notesContainer) return;
 
         if (this.filteredNotes.length === 0) {
             this.showEmptyState();
@@ -327,8 +233,6 @@ class NotePageHandler {
             const noteCard = this.createNoteCard(note);
             this.notesContainer.appendChild(noteCard);
         });
-        
-        console.log('Note renderizzate nel DOM:', this.notesContainer.children.length);
     }
 
     /**
@@ -340,29 +244,26 @@ class NotePageHandler {
         noteCard.dataset.noteId = note.id;
         noteCard.dataset.fullContent = note.contenuto;
 
-        const formattedDate = this.formatDate(note.dataUltimaModifica);
-        const truncatedContent = this.truncateContent(note.contenuto, 150);
+        const formattedDate = formatDate(note.dataUltimaModifica); // Usa la funzione comune!
+        const truncatedContent = truncateContent(note.contenuto, 150); // Usa la funzione comune!
         
-        // Crea il tag HTML se presente
-        const tagHtml = note.tag ? `<div class="note-tag">${this.escapeHtml(note.tag)}</div>` : '';
+        const tagHtml = note.tag ? `<div class="note-tag">${escapeHtml(note.tag)}</div>` : ''; // Usa la funzione comune!
 
-        // Determina se la nota è condivisa verificando se l'utente corrente è il proprietario
         const isShared = this.currentUserEmail && note.proprietario !== this.currentUserEmail;
         const sharedIndicator = isShared ? `<div class="note-shared-indicator">
-            Condivisa da ${this.escapeHtml(note.proprietario)}
-        </div>` : '';
+            Condivisa da ${escapeHtml(note.proprietario)}</div>` : ''; // Usa la funzione comune!
 
         noteCard.innerHTML = `
             <div class="note-header">
                 <div class="note-title-container">
                     ${sharedIndicator}
-                    <h3 class="note-title">${this.escapeHtml(note.titolo)}</h3>
+                    <h3 class="note-title">${escapeHtml(note.titolo)}</h3>
                 </div>
                 <div class="note-menu">
                     <button class="note-menu-btn" title="Menu opzioni">⋯</button>
                 </div>
             </div>
-            <div class="note-content">${this.escapeHtml(truncatedContent)}</div>
+            <div class="note-content">${escapeHtml(truncatedContent)}</div>
             <div class="note-footer">
                 <div class="note-tags">
                     ${tagHtml}
@@ -401,19 +302,15 @@ class NotePageHandler {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                console.log('Risposta eliminazione nota:', data);
-                this.showNotification('Nota eliminata con successo!', 'success');
-                await this.loadNotes(); // Ricarica le note
+                showNotification('Nota eliminata con successo!', 'success'); // Usa la funzione comune!
+                await this.loadNotes();
             } else {
                 const errorData = await response.json();
-                console.error('Errore eliminazione nota:', errorData);
-                this.showNotification(errorData.message || 'Errore nell\'eliminazione della nota', 'error');
+                showNotification(errorData.message || 'Errore nell\'eliminazione della nota', 'error'); // Usa la funzione comune!
             }
 
         } catch (error) {
-            console.error('Errore nell\'eliminazione:', error);
-            this.showNotification('Errore di connessione', 'error');
+            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
         }
     }
 
@@ -431,103 +328,5 @@ class NotePageHandler {
     hideEmptyState() {
         if (this.emptyState) this.emptyState.style.display = 'none';
         if (this.notesContainer) this.notesContainer.style.display = 'grid';
-    }
-
-    /**
-     * Utility: formatta una data
-     */
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'Ora';
-        if (diffMins < 60) return `${diffMins} min fa`;
-        if (diffHours < 24) return `${diffHours} ore fa`;
-        if (diffDays < 7) return `${diffDays} giorni fa`;
-        
-        return date.toLocaleDateString('it-IT');
-    }
-
-    /**
-     * Utility: tronca il testo
-     */
-    truncateContent(text, maxLength) {
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength).trim() + '...';
-    }
-
-    /**
-     * Utility: escape HTML
-     */
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    /**
-     * Mostra notifica
-     */
-    showNotification(message, type = 'info') {
-        // Rimuovi eventuali notifiche precedenti
-        const existingNotifications = document.querySelectorAll('.notification');
-        existingNotifications.forEach(notif => notif.remove());
-
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-        
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 6px;
-            color: white;
-            font-weight: 500;
-            z-index: 10000;
-            animation: slideInRight 0.3s ease;
-            max-width: 300px;
-        `;
-
-        // Aggiungi gli stili per i colori se non esistono già
-        if (!document.head.querySelector('style[data-notifications]')) {
-            const style = document.createElement('style');
-            style.setAttribute('data-notifications', '');
-            style.textContent = `
-                @keyframes slideInRight {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-                .notification-success { background-color: #16a34a; }
-                .notification-error { background-color: #dc2626; }
-                .notification-info { background-color: #2563eb; }
-            `;
-            document.head.appendChild(style);
-        }
-
-        if (type === 'success') {
-            notification.style.backgroundColor = '#16a34a';
-        } else if (type === 'error') {
-            notification.style.backgroundColor = '#dc2626';
-        } else {
-            notification.style.backgroundColor = '#2563eb';
-        }
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
     }
 }
