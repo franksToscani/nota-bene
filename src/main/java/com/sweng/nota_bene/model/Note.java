@@ -1,6 +1,7 @@
 package com.sweng.nota_bene.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -42,13 +43,15 @@ public class Note {
 
     @PrePersist
     protected void onCreate() {
-        dataCreazione = LocalDateTime.now();
-        dataUltimaModifica = LocalDateTime.now();
+        ZoneId zoneId = ZoneId.of("Europe/Rome");
+        dataCreazione = LocalDateTime.now(zoneId);
+        dataUltimaModifica = LocalDateTime.now(zoneId);
     }
 
     @PreUpdate
     protected void onUpdate() {
-        dataUltimaModifica = LocalDateTime.now();
+        ZoneId zoneId = ZoneId.of("Europe/Rome");
+        dataUltimaModifica = LocalDateTime.now(zoneId);
     }
 
     // Getters

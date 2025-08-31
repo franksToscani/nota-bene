@@ -8,5 +8,6 @@ public record NoteListResponse(
         String titolo,
         String contenuto,
         java.time.LocalDateTime dataUltimaModifica,
-        String tag
+        String tag,
+        String proprietario
 ) {}

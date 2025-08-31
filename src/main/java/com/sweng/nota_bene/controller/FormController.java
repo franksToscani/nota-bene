@@ -1,14 +1,15 @@
 package com.sweng.nota_bene.controller;
 
-import com.sweng.nota_bene.dto.TagResponse;
-import com.sweng.nota_bene.service.TagService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
+import com.sweng.nota_bene.dto.TagResponse;
+import com.sweng.nota_bene.service.TagService;
 
 @Controller
 public class FormController {

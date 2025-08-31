@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sweng.nota_bene.dto.CondivisioneResponse;
 import com.sweng.nota_bene.dto.CreateNoteRequest;
 import com.sweng.nota_bene.dto.NoteListResponse;
 import com.sweng.nota_bene.dto.NoteResponse;
@@ -18,10 +19,12 @@ import com.sweng.nota_bene.repository.NoteRepository;
 public class NoteService {
     private final NoteRepository noteRepository;
     private final TagService tagService;
+    private final CondivisioneService condivisioneService;
 
-    public NoteService(NoteRepository noteRepository, TagService tagService) {
+    public NoteService(NoteRepository noteRepository, TagService tagService, CondivisioneService condivisioneService) {
         this.noteRepository = noteRepository;
         this.tagService = tagService;
+        this.condivisioneService = condivisioneService;
     }
 
     @Transactional
@@ -42,12 +45,37 @@ public class NoteService {
         }
         
         note = noteRepository.save(note);
+        
+        // Gestione delle condivisioni - passa l'email del proprietario per la validazione
+        if (request.condivisioni() != null && !request.condivisioni().isEmpty()) {
+            condivisioneService.updateCondivisioni(note.getId(), request.condivisioni(), proprietarioEmail);
+        }
+        
         return mapToNoteResponse(note);
     }
 
     public List<NoteListResponse> getNoteUtente(String proprietarioEmail) {
-        List<Note> notes = noteRepository.findByProprietarioOrderByDataUltimaModificaDesc(proprietarioEmail);
-        return notes.stream()
+        // Ottieni le note di proprietà dell'utente
+        List<Note> noteProprietario = noteRepository.findByProprietarioOrderByDataUltimaModificaDesc(proprietarioEmail);
+        
+        // Ottieni gli ID delle note condivise con l'utente
+        List<UUID> noteCondiviseIds = condivisioneService.getAccessibleNoteIds(proprietarioEmail);
+        
+        // Ottieni le note condivise (escludendo quelle di cui è proprietario per evitare duplicati)
+        List<Note> noteCondivise = noteRepository.findAllById(noteCondiviseIds)
+            .stream()
+            .filter(nota -> !nota.getProprietario().equals(proprietarioEmail))
+            .collect(Collectors.toList());
+        
+        // Combina e ordina tutte le note
+        List<Note> tutteLeNote = noteProprietario.stream()
+            .collect(Collectors.toList());
+        tutteLeNote.addAll(noteCondivise);
+        
+        // Ordina per data ultima modifica
+        tutteLeNote.sort((a, b) -> b.getDataUltimaModifica().compareTo(a.getDataUltimaModifica()));
+        
+        return tutteLeNote.stream()
                 .map(this::mapToNoteListResponse)
                 .collect(Collectors.toList());
     }
@@ -56,7 +84,8 @@ public class NoteService {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));
         
-        if (!note.getProprietario().equals(proprietarioEmail)) {
+        // Verifica permessi di lettura
+        if (!condivisioneService.hasReadPermission(id, proprietarioEmail, note.getProprietario())) {
             throw new IllegalArgumentException("Non hai i permessi per accedere a questa nota");
         }
         
@@ -68,7 +97,8 @@ public class NoteService {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));
         
-        if (!note.getProprietario().equals(proprietarioEmail)) {
+        // Verifica permessi di scrittura
+        if (!condivisioneService.hasWritePermission(id, proprietarioEmail, note.getProprietario())) {
             throw new IllegalArgumentException("Non hai i permessi per modificare questa nota");
         }
 
@@ -90,6 +120,12 @@ public class NoteService {
         }
         
         note = noteRepository.save(note);
+        
+        // Solo il proprietario può gestire le condivisioni - passa l'email del proprietario
+        if (note.getProprietario().equals(proprietarioEmail) && request.condivisioni() != null) {
+            condivisioneService.updateCondivisioni(id, request.condivisioni(), note.getProprietario());
+        }
+        
         return mapToNoteResponse(note);
     }
 
@@ -98,14 +134,19 @@ public class NoteService {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));
         
+        // Solo il proprietario può eliminare la nota
         if (!note.getProprietario().equals(proprietarioEmail)) {
-            throw new IllegalArgumentException("Non hai i permessi per eliminare questa nota");
+            throw new IllegalArgumentException("Solo il proprietario può eliminare questa nota");
         }
 
+        // Le condivisioni vengono eliminate automaticamente dalla CASCADE nel DB
         noteRepository.delete(note);
     }
 
     private NoteResponse mapToNoteResponse(Note note) {
+        // Ottieni le condivisioni per questa nota
+        List<CondivisioneResponse> condivisioni = condivisioneService.getCondivisioniByNota(note.getId());
+        
         return new NoteResponse(
                 note.getId(),
                 note.getTitolo(),
@@ -114,7 +155,8 @@ public class NoteService {
                 note.getDataCreazione(),
                 note.getDataUltimaModifica(),
                 note.getIdCartella(),
-                note.getTag()
+                note.getTag(),
+                condivisioni
         );
     }
 
@@ -124,7 +166,8 @@ public class NoteService {
                 note.getTitolo(),
                 note.getContenuto(),
                 note.getDataUltimaModifica(),
-                note.getTag()
+                note.getTag(),
+                note.getProprietario()
         );
     }
 }

@@ -12,7 +12,6 @@
     <header class="header">
         <div class="header-content">
             <a href="/home" class="logo">
-                <!--<div class="logo-icon">📝</div>-->
                 <div class="logo-text">NOTA BENE</div>
             </a>
 
@@ -53,6 +52,27 @@
                     <textarea id="note-content-input" rows="8" required maxlength="280" placeholder="Scrivi qui il contenuto della tua nota..."></textarea>
                     <div class="char-counter">
                         <span id="char-count">0</span>/280 caratteri
+                    </div>
+                </div>
+
+                <!-- Sezione Condivisione -->
+                <div class="form-group">
+                    <label>Condivisione</label>
+                    <div class="sharing-section">
+                        <div class="sharing-controls">
+                            <div class="sharing-input-group">
+                                <input type="email" id="share-email-input" placeholder="Email utente da condividere">
+                                <select id="permission-select">
+                                    <option value="lettura">Lettore</option>
+                                    <option value="scrittura">Scrittore</option>
+                                </select>
+                                <button type="button" id="add-share-btn" class="btn primary">Aggiungi</button>
+                            </div>
+                        </div>
+                        
+                        <div class="shared-users" id="shared-users-list">
+                            <!-- Le condivisioni saranno aggiunte qui dinamicamente -->
+                        </div>
                     </div>
                 </div>
 

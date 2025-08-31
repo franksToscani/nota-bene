@@ -1,8 +1,7 @@
 package com.sweng.nota_bene.dto;
 
+import java.util.List;
 import java.util.UUID;
-
-// DTO per la risposta con i dettagli della nota
 public record NoteResponse(
         UUID id,
         String titolo,
@@ -11,5 +10,7 @@ public record NoteResponse(
         java.time.LocalDateTime dataCreazione,
         java.time.LocalDateTime dataUltimaModifica,
         UUID idCartella,
-        String tag
+        String tag,
+        List<CondivisioneResponse> condivisioni
+
 ) {}

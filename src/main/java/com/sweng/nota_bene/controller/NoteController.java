@@ -41,7 +41,7 @@ public class NoteController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserResponse) {
             UserResponse user = (UserResponse) authentication.getPrincipal();
-            return user.email(); // Ora usiamo l'email invece del nickname
+            return user.email();
         }
         throw new IllegalStateException("Utente non autenticato");
     }
@@ -105,14 +105,19 @@ public class NoteController {
         try {
             String proprietarioEmail = getAuthenticatedUserEmail();
             NoteResponse nota = noteService.getNotaById(id, proprietarioEmail);
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "nota", nota
-            ));
-        } catch (Exception e) {
+            
+            // Il frontend si aspetta la nota direttamente, non wrapped in un oggetto
+            return ResponseEntity.ok(nota);
+            
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Errore interno del server"
             ));
         }
     }

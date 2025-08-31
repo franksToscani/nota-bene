@@ -1,5 +1,7 @@
 package com.sweng.nota_bene.dto;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -12,5 +14,6 @@ public record CreateNoteRequest(
         @NotBlank(message = "Il contenuto è obbligatorio")
         @Size(max = 280, message = "Il contenuto non può superare i 280 caratteri")
         String contenuto,
-        String tagId
+        String tagId,
+        List<CondivisioneRequest> condivisioni
 ) {}

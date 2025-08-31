@@ -1,4 +1,4 @@
-// form.js - Gestione form di creazione/modifica nota
+// form.js - Gestione form di creazione/modifica nota con permessi
 
 (function () {
     'use strict';
@@ -115,7 +115,7 @@
 })();
 
 /**
- * Gestore del form per le note
+ * Gestore del form per le note con gestione permessi
  */
 class NoteFormHandler {
     constructor() {
@@ -129,9 +129,18 @@ class NoteFormHandler {
         this.backBtn = document.getElementById('back-btn');
         this.formTitle = document.getElementById('form-title');
         
+        // Elementi per la condivisione
+        this.shareEmailInput = document.getElementById('share-email-input');
+        this.permissionSelect = document.getElementById('permission-select');
+        this.addShareBtn = document.getElementById('add-share-btn');
+        this.sharedUsersList = document.getElementById('shared-users-list');
+        
         this.currentNoteId = null;
         this.mode = 'create'; // 'create' or 'edit'
         this.tags = []; // Cache dei tag disponibili
+        this.sharedUsers = []; // Lista degli utenti con cui è condivisa la nota
+        this.currentUserEmail = null; // Email dell'utente corrente
+        this.isOwner = true; // Flag per sapere se l'utente corrente è il proprietario della nota
 
         this.init();
         this.loadTags();
@@ -169,8 +178,28 @@ class NoteFormHandler {
             });
         }
 
+        // Gestione condivisione
+        if (this.addShareBtn) {
+            this.addShareBtn.addEventListener('click', () => {
+                this.addSharedUser();
+            });
+        }
+
+        // Permettere di aggiungere un utente premendo Invio
+        if (this.shareEmailInput) {
+            this.shareEmailInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.addSharedUser();
+                }
+            });
+        }
+
         // Aggiorna il contatore iniziale
         this.updateCharCount();
+        
+        // Aggiorna la lista di condivisione iniziale
+        this.updateSharedUsersList();
     }
 
     /**
@@ -287,14 +316,39 @@ class NoteFormHandler {
 
             if (response.ok) {
                 const note = await response.json();
+                console.log('Nota caricata:', note);
                 
-                if (this.titleInput) this.titleInput.value = note.titolo;
-                if (this.contentInput) this.contentInput.value = note.contenuto;
+                if (this.titleInput) this.titleInput.value = note.titolo || '';
+                if (this.contentInput) this.contentInput.value = note.contenuto || '';
                 
-                // Imposta il tag se presente
+                // Imposta il tag se presente - il tag arriva come stringa dal server
                 if (this.tagSelect && note.tag) {
-                    this.tagSelect.value = note.tag.id;
+                    // Aspetta che i tag siano caricati prima di impostare il valore
+                    if (this.tags.length === 0) {
+                        await this.loadTags();
+                    }
+                    this.tagSelect.value = note.tag;
                 }
+                
+                // Ottieni l'email dell'utente corrente per verificare se è il proprietario
+                const authResponse = await fetch('/api/auth/check', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (authResponse.ok) {
+                    const authData = await authResponse.json();
+                    this.currentUserEmail = authData.user?.email;
+                    this.isOwner = this.currentUserEmail === note.proprietario;
+                }
+                
+                // Carica le condivisioni esistenti
+                this.sharedUsers = note.condivisioni || [];
+                this.updateSharedUsersList();
+                
+                // Mostra/nascondi la sezione condivisioni in base ai permessi
+                this.updateSharingSection();
                 
                 if (this.formTitle) this.formTitle.textContent = 'Modifica Nota';
                 if (this.saveBtn) this.saveBtn.textContent = 'Salva modifiche';
@@ -305,6 +359,10 @@ class NoteFormHandler {
                 if (this.titleInput) {
                     this.titleInput.focus();
                 }
+            } else if (response.status === 400) {
+                const errorData = await response.json();
+                this.showNotification(errorData.message || 'Non hai i permessi per accedere a questa nota', 'error');
+                this.goBack();
             } else {
                 this.showNotification('Errore nel caricamento della nota', 'error');
                 this.goBack();
@@ -313,6 +371,22 @@ class NoteFormHandler {
             console.error('Errore nel caricamento della nota:', error);
             this.showNotification('Errore di connessione', 'error');
             this.goBack();
+        }
+    }
+
+    /**
+     * Aggiorna la visibilità della sezione condivisioni
+     */
+    updateSharingSection() {
+        const sharingSection = document.querySelector('.sharing-section');
+        if (!sharingSection) return;
+
+        if (this.mode === 'create' || this.isOwner) {
+            // Mostra la sezione condivisioni per nuove note o se sei il proprietario
+            sharingSection.style.display = 'block';
+        } else {
+            // Nascondi la sezione condivisioni se non sei il proprietario
+            sharingSection.style.display = 'none';
         }
     }
 
@@ -335,7 +409,164 @@ class NoteFormHandler {
     }
 
     /**
-     * Salva la nota (crea o modifica)
+     * Aggiunge un utente alla lista di condivisione
+     */
+    addSharedUser() {
+        const email = this.shareEmailInput.value.trim();
+        const permission = this.permissionSelect.value;
+
+        if (!email) {
+            this.showNotification('Inserire un indirizzo email', 'error');
+            return;
+        }
+
+        // Validazione email base
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.showNotification('Inserire un indirizzo email valido', 'error');
+            return;
+        }
+
+        // Impedisci di condividere con se stessi
+        if (email === this.currentUserEmail) {
+            this.showNotification('Non puoi condividere la nota con te stesso', 'error');
+            return;
+        }
+
+        // Controlla se l'utente è già nella lista
+        const existingUser = this.sharedUsers.find(user => user.emailUtente === email);
+        if (existingUser) {
+            // Aggiorna il permesso se l'utente esiste già
+            existingUser.tipo = permission;
+            this.showNotification('Permessi aggiornati per questo utente', 'info');
+        } else {
+            // Aggiungi nuovo utente
+            this.sharedUsers.push({
+                emailUtente: email,
+                tipo: permission
+            });
+            this.showNotification('Utente aggiunto alla condivisione', 'success');
+        }
+
+        // Pulisci il campo email e aggiorna la lista
+        this.shareEmailInput.value = '';
+        this.updateSharedUsersList();
+    }
+
+    /**
+     * Rimuove un utente dalla lista di condivisione
+     */
+    removeSharedUser(email) {
+        this.sharedUsers = this.sharedUsers.filter(user => user.emailUtente !== email);
+        this.updateSharedUsersList();
+        this.showNotification('Utente rimosso dalla condivisione', 'info');
+    }
+
+    /**
+     * Cambia il permesso di un utente
+     */
+    changeUserPermission(email, newPermission) {
+        const user = this.sharedUsers.find(user => user.emailUtente === email);
+        if (user) {
+            user.tipo = newPermission;
+            this.updateSharedUsersList();
+            this.showNotification('Permessi aggiornati', 'success');
+        }
+    }
+
+    /**
+     * Aggiorna la visualizzazione della lista degli utenti condivisi
+     */
+    updateSharedUsersList() {
+        if (!this.sharedUsersList) return;
+
+        // Pulisci la lista
+        this.sharedUsersList.innerHTML = '';
+
+        if (this.sharedUsers.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'empty-sharing';
+            emptyDiv.textContent = 'Nessuna condivisione configurata';
+            this.sharedUsersList.appendChild(emptyDiv);
+            return;
+        }
+
+        // Aggiungi ogni utente condiviso
+        this.sharedUsers.forEach(user => {
+            const userItem = this.createSharedUserItem(user);
+            this.sharedUsersList.appendChild(userItem);
+        });
+    }
+
+    /**
+     * Crea l'elemento per un singolo utente condiviso
+     */
+    createSharedUserItem(user) {
+        const item = document.createElement('div');
+        item.className = 'shared-user-item';
+
+        const userInfo = document.createElement('div');
+        userInfo.className = 'shared-user-info';
+
+        // Email dell'utente
+        const email = document.createElement('div');
+        email.className = 'shared-user-email';
+        email.textContent = user.emailUtente;
+
+        // Container per il ruolo
+        const roleContainer = document.createElement('div');
+        roleContainer.className = 'shared-user-role-container';
+
+        // Solo il proprietario può modificare i permessi
+        if (this.mode === 'create' || this.isOwner) {
+            // Select per cambiare permesso integrato nel layout
+            const permissionSelect = document.createElement('select');
+            permissionSelect.className = 'permission-select-inline';
+            permissionSelect.innerHTML = `
+                <option value="lettura" ${user.tipo === 'lettura' ? 'selected' : ''}>Lettore</option>
+                <option value="scrittura" ${user.tipo === 'scrittura' ? 'selected' : ''}>Scrittore</option>
+            `;
+            permissionSelect.addEventListener('change', (e) => {
+                this.changeUserPermission(user.emailUtente, e.target.value);
+            });
+            
+            roleContainer.appendChild(permissionSelect);
+        } else {
+            // Solo visualizzazione del ruolo se non si può modificare
+            const permissionText = document.createElement('span');
+            permissionText.className = 'permission-readonly';
+            permissionText.textContent = user.tipo === 'lettura' ? 'Lettore' : 'Scrittore';
+            roleContainer.appendChild(permissionText);
+        }
+
+        userInfo.appendChild(email);
+        userInfo.appendChild(roleContainer);
+
+        // Azioni (solo pulsante rimuovi)
+        const actions = document.createElement('div');
+        actions.className = 'shared-user-actions';
+
+        // Pulsante rimuovi (solo se proprietario)
+        if (this.mode === 'create' || this.isOwner) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn danger small';
+            removeBtn.textContent = 'Rimuovi';
+            removeBtn.addEventListener('click', () => {
+                this.removeSharedUser(user.emailUtente);
+            });
+
+            actions.appendChild(removeBtn);
+        }
+
+        item.appendChild(userInfo);
+        item.appendChild(actions);
+
+        return item;
+    }
+
+    /**
+     * Salva la nota (crea o modifica) con le condivisioni
      */
     async saveNote() {
         const titolo = this.titleInput.value.trim();
@@ -359,8 +590,13 @@ class NoteFormHandler {
             const requestBody = { 
                 titolo, 
                 contenuto,
-                tagId 
+                tagId
             };
+
+            // Include le condivisioni solo se sei il proprietario o stai creando una nuova nota
+            if (this.mode === 'create' || this.isOwner) {
+                requestBody.condivisioni = this.sharedUsers;
+            }
 
             let response;
             
@@ -447,7 +683,7 @@ class NoteFormHandler {
             max-width: 300px;
         `;
 
-        // Aggiungi gli stili per i colori se non esistono già  
+        // Aggiungi gli stili per i colori se non esistono già
         if (!document.head.querySelector('style[data-notifications]')) {
             const style = document.createElement('style');
             style.setAttribute('data-notifications', '');

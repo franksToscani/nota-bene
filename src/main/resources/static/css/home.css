@@ -290,7 +290,7 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    min-height: 200px; /* Altezza minima per layout consistente */
+    min-height: 200px;
 }
 
 .note-card:hover {
@@ -321,6 +321,31 @@ body {
     margin: 0;
     line-height: 1.3;
     flex: 1;
+}
+
+.note-shared-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--color-success-light);
+    color: var(--color-success);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border: 1px solid rgba(22, 163, 74, 0.2);
+    white-space: nowrap;
+    margin-bottom: var(--spacing-xs);
+}
+
+.note-shared-indicator .share-icon {
+    font-size: var(--font-size-xs);
+}
+
+.note-title-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .note-menu {
@@ -434,7 +459,7 @@ body {
     justify-content: space-between;
     gap: var(--spacing-sm);
     flex-wrap: wrap;
-    margin-top: auto; /* Spinge il footer in basso nella card */
+    margin-top: auto;
 }
 
 .note-tags {
@@ -467,10 +492,9 @@ body {
     gap: var(--spacing-sm);
     font-size: var(--font-size-xs);
     color: var(--color-text-lighter);
-    flex-shrink: 0; /* Non si riduce quando ci sono tag lunghi */
+    flex-shrink: 0;
 }
 
-/* Quando non ci sono tag, centra la data */
 .note-footer:has(.note-tags:empty) {
     justify-content: flex-end;
 }
@@ -579,16 +603,13 @@ body {
     position: relative;
 }
 
-/* Contenuto espanso con transizione fluida */
 .note-card.expanded .note-content {
-    -webkit-line-clamp: unset;
     overflow: visible;
     opacity: 1;
     max-height: 1000px;
     transition: opacity 0.4s ease, max-height 0.4s ease;
 }
 
-/* Evidenziazione del titolo al click */
 .note-card.expanded .note-title {
     color: var(--color-primary);
     font-size: 1.125rem;
@@ -596,7 +617,6 @@ body {
     transition: color 0.3s ease, font-size 0.3s ease;
 }
 
-/* Linea decorativa sopra e sotto la nota */
 .note-card.expanded::before,
 .note-card.expanded::after {
     content: "";
@@ -608,13 +628,11 @@ body {
     transition: opacity 0.3s ease;
 }
 
-/* Animazione al passaggio da chiusa a espansa */
 .note-card {
     transition: all 0.3s ease;
     will-change: transform, box-shadow, background-color;
 }
 
-/* Piccolo effetto hover anche quando espansa */
 .note-card.expanded:hover {
     transform: translateY(-7px) scale(1.04);
     box-shadow: 0 20px 35px rgba(0,0,0,0.25);
@@ -638,5 +656,10 @@ body {
     
     .notes-container {
         grid-template-columns: 1fr;
+    }
+    
+    .note-shared-indicator {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-xs);
     }
 }

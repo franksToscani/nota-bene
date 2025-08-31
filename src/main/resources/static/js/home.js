@@ -125,8 +125,10 @@ class NotePageHandler {
         this.notes = []; // Cache locale delle note
         this.filteredNotes = []; // Note filtrate per la ricerca
         this.activeDropdown = null; // Riferimento al dropdown attivo
+        this.currentUserEmail = null; // Email dell'utente corrente
 
         this.init();
+        this.loadCurrentUser();
         this.loadNotes();
     }
 
@@ -169,6 +171,26 @@ class NotePageHandler {
                     this.toggleNoteExpansion(noteCard);
                 }
             });
+        }
+    }
+
+    /**
+     * Carica l'email dell'utente corrente
+     */
+    async loadCurrentUser() {
+        try {
+            const response = await fetch('/api/auth/check', {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            
+            if (response.ok) {
+                const authData = await response.json();
+                this.currentUserEmail = authData.user?.email;
+            }
+        } catch (error) {
+            console.error('Errore nel caricamento utente corrente:', error);
         }
     }
 
@@ -324,9 +346,18 @@ class NotePageHandler {
         // Crea il tag HTML se presente
         const tagHtml = note.tag ? `<div class="note-tag">${this.escapeHtml(note.tag)}</div>` : '';
 
+        // Determina se la nota è condivisa verificando se l'utente corrente è il proprietario
+        const isShared = this.currentUserEmail && note.proprietario !== this.currentUserEmail;
+        const sharedIndicator = isShared ? `<div class="note-shared-indicator">
+            Condivisa da ${this.escapeHtml(note.proprietario)}
+        </div>` : '';
+
         noteCard.innerHTML = `
             <div class="note-header">
-                <h3 class="note-title">${this.escapeHtml(note.titolo)}</h3>
+                <div class="note-title-container">
+                    ${sharedIndicator}
+                    <h3 class="note-title">${this.escapeHtml(note.titolo)}</h3>
+                </div>
                 <div class="note-menu">
                     <button class="note-menu-btn" title="Menu opzioni">⋯</button>
                 </div>
@@ -463,7 +494,7 @@ class NotePageHandler {
             max-width: 300px;
         `;
 
-        // Aggiungi gli stili per i colori se non esistono già  
+        // Aggiungi gli stili per i colori se non esistono già
         if (!document.head.querySelector('style[data-notifications]')) {
             const style = document.createElement('style');
             style.setAttribute('data-notifications', '');
