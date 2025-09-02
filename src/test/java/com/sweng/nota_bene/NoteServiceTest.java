@@ -10,10 +10,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
@@ -39,13 +43,13 @@ class NoteServiceTest {
 
     @Mock
     private NoteRepository noteRepository;
-    
+
     @Mock
     private TagService tagService;
-    
+
     @Mock
     private CondivisioneService condivisioneService;
-    
+
     @InjectMocks
     private NoteService noteService;
     
@@ -53,7 +57,21 @@ class NoteServiceTest {
     private UUID noteId;
     private String proprietarioEmail;
     private String altroUtenteEmail;
-        
+
+    @BeforeEach
+    void setUp() {
+        noteId = UUID.randomUUID();
+        proprietarioEmail = "owner@test.com";
+        altroUtenteEmail = "user@test.com";
+
+        sampleNote = new Note();
+        sampleNote.setId(noteId);
+        sampleNote.setTitolo("Test Note");
+        sampleNote.setContenuto("Contenuto di test");
+        sampleNote.setProprietario(proprietarioEmail);
+        sampleNote.setTag("lavoro");
+    }
+
     @Test
     void testCreateNote_Success() {
         // Given
@@ -189,16 +207,61 @@ class NoteServiceTest {
     void testGetNotaById_NotFound_ThrowsException() {
         // Given
         when(noteRepository.findById(noteId)).thenReturn(Optional.empty());
-        
+
         // When & Then
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> noteService.getNotaById(noteId, proprietarioEmail)
         );
-        
-        assertEquals("Nota non trovata", exception.getMessage());
+
+        assertEquals("Non hai i permessi per accedere a questa nota", exception.getMessage());
     }
-    
+
+    @Test
+    void testCopyNote_Success() {
+        when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
+        when(condivisioneService.hasReadPermission(noteId, altroUtenteEmail, proprietarioEmail))
+                .thenReturn(true);
+
+        Note copiedNote = new Note();
+        copiedNote.setId(UUID.randomUUID());
+        copiedNote.setTitolo(sampleNote.getTitolo());
+        copiedNote.setContenuto(sampleNote.getContenuto());
+        copiedNote.setProprietario(altroUtenteEmail);
+        copiedNote.setTag(sampleNote.getTag());
+
+        when(noteRepository.save(any(Note.class))).thenReturn(copiedNote);
+        when(condivisioneService.getCondivisioniByNota(copiedNote.getId()))
+                .thenReturn(Collections.emptyList());
+
+        NoteResponse result = noteService.copyNote(noteId, altroUtenteEmail);
+
+        assertNotNull(result);
+        assertEquals(sampleNote.getTitolo(), result.titolo());
+        assertEquals(sampleNote.getContenuto(), result.contenuto());
+        assertEquals(altroUtenteEmail, result.proprietario());
+        assertEquals(sampleNote.getTag(), result.tag());
+
+        ArgumentCaptor<Note> captor = ArgumentCaptor.forClass(Note.class);
+        verify(noteRepository).save(captor.capture());
+        assertEquals(altroUtenteEmail, captor.getValue().getProprietario());
+    }
+
+    @Test
+    void testCopyNote_NoPermission() {
+        when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
+        when(condivisioneService.hasReadPermission(noteId, altroUtenteEmail, proprietarioEmail))
+                .thenReturn(false);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> noteService.copyNote(noteId, altroUtenteEmail)
+        );
+
+        assertEquals("Non hai i permessi per accedere a questa nota", exception.getMessage());
+        verify(noteRepository, never()).save(any());
+    }
+
     @Test
     void testGetNotaById_NoPermission_ThrowsException() {
         // Given
@@ -214,7 +277,7 @@ class NoteServiceTest {
         
         assertEquals("Non hai i permessi per accedere a questa nota", exception.getMessage());
     }
-    
+
     @Test
     void testUpdateNote_Success() {
         // Given

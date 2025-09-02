@@ -122,6 +122,24 @@ public class NoteController {
         }
     }
 
+    @PostMapping("/{id}/copy")
+    public ResponseEntity<?> copyNote(@PathVariable UUID id) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            NoteResponse nota = noteService.copyNote(id, proprietarioEmail);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "nota", nota,
+                    "message", "Nota copiata con successo"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteNote(@PathVariable UUID id) {
         try {

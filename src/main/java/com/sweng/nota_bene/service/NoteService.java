@@ -93,6 +93,26 @@ public class NoteService {
     }
 
     @Transactional
+    public NoteResponse copyNote(UUID id, String emailUtente) {
+        Note originale = noteRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));
+
+        if (!condivisioneService.hasReadPermission(id, emailUtente, originale.getProprietario())) {
+            throw new IllegalArgumentException("Non hai i permessi per accedere a questa nota");
+        }
+
+        Note copia = new Note();
+        copia.setTitolo(originale.getTitolo());
+        copia.setContenuto(originale.getContenuto());
+        copia.setTag(originale.getTag());
+        copia.setProprietario(emailUtente);
+
+        copia = noteRepository.save(copia);
+
+        return mapToNoteResponse(copia);
+    }
+
+    @Transactional
     public NoteResponse updateNote(UUID id, UpdateNoteRequest request, String proprietarioEmail) {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));

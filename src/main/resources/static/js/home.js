@@ -85,6 +85,8 @@ class NotePageHandler {
                         this.editNote(noteId);
                     } else if (e.target.classList.contains('delete')) {
                         this.deleteNote(noteId);
+                    } else if (e.target.classList.contains('copy')) {
+                    this.copyNote(noteId);
                     }
                     this.closeDropdown();
                 } else {
@@ -160,6 +162,7 @@ class NotePageHandler {
         dropdown.className = 'note-menu-dropdown';
         dropdown.innerHTML = `
             <button class="note-menu-item edit">Modifica</button>
+            <button class="note-menu-item copy">Duplica</button>
             <button class="note-menu-item delete">Elimina</button>
         `;
 
@@ -303,6 +306,32 @@ class NotePageHandler {
             } else {
                 const errorData = await response.json();
                 showNotification(errorData.message || 'Errore nell\'eliminazione della nota', 'error'); // Usa la funzione comune!
+            }
+
+        } catch (error) {
+            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
+        }
+    }
+
+    /**
+     * Duplica una nota
+     */
+    async copyNote(noteId) {
+        try {
+            const response = await fetch(`/api/note/${noteId}/copy`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                showNotification('Nota duplicata con successo!', 'success'); // Usa la funzione comune!
+                await this.loadNotes();
+            } else {
+                const errorData = await response.json();
+                showNotification(errorData.message || 'Errore nella duplicazione della nota', 'error'); // Usa la funzione comune!
             }
 
         } catch (error) {
