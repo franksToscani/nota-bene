@@ -3,6 +3,7 @@ package com.sweng.nota_bene.service;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +77,21 @@ public class NoteService {
         tutteLeNote.sort((a, b) -> b.getDataUltimaModifica().compareTo(a.getDataUltimaModifica()));
         
         return tutteLeNote.stream()
+                .map(this::mapToNoteListResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Ricerca le note accessibili applicando filtri facoltativi sulle date di
+     * creazione e modifica.
+     */
+    public List<NoteListResponse> searchAccessibleNotes(String emailUtente,
+            LocalDateTime createdFrom,
+            LocalDateTime createdTo,
+            LocalDateTime modifiedFrom,
+            LocalDateTime modifiedTo) {
+        List<Note> note = noteRepository.searchAccessibleNotes(emailUtente, createdFrom, createdTo, modifiedFrom, modifiedTo);
+        return note.stream()
                 .map(this::mapToNoteListResponse)
                 .collect(Collectors.toList());
     }
