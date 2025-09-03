@@ -72,6 +72,31 @@
     align-items: center;
 }
 
+/* Date range filters */
+.date-range-group {
+    display: inline-flex;
+    flex-direction: column;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.date-range {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.range-separator {
+    margin: 0 var(--spacing-xs);
+    color: var(--color-text-light);
+}
+
+@media (max-width: 600px) {
+    .date-range-group {
+        width: 100%;
+    }
+}
 /* Notes Grid */
 .notes-container {
     display: grid;
