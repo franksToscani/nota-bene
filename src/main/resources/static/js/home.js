@@ -206,6 +206,7 @@ class NotePageHandler {
 
 
     async applyFilters() {
+        this.toolbar.classList.add('filters-active');
         const params = new URLSearchParams();
         if (this.createdFrom && this.createdFrom.value) {
             params.append('createdFrom', this.createdFrom.value);
@@ -228,18 +229,28 @@ class NotePageHandler {
             if (response.ok) {
                 const data = await response.json();
                 this.notes = data.note || [];
-                this.filterNotes(this.searchInput ? this.searchInput.value.trim() : '');
-            }
+                this.filteredNotes = data.note || [];
+                const searchTerm = this.searchInput ? this.searchInput.value.trim() : '';
+                if (searchTerm) {
+                    this.filterNotes(searchTerm);
+                } else {
+                    this.renderNotes();
+                }            }
         } catch (error) {
             console.error('Errore nell\'applicazione dei filtri:', error);
         }
     }
 
     async resetFilters() {
+        this.toolbar.classList.remove('filters-active');
         if (this.createdFrom) this.createdFrom.value = '';
         if (this.createdTo) this.createdTo.value = '';
         if (this.modifiedFrom) this.modifiedFrom.value = '';
         if (this.modifiedTo) this.modifiedTo.value = '';
+        const resultsCount = document.getElementById('results-count');
+        if (resultsCount) {
+            resultsCount.textContent = '0';
+        }
         await this.loadNotes();
     }
     /**

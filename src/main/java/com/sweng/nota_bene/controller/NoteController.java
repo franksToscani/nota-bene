@@ -104,34 +104,37 @@ public class NoteController {
             @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate createdFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate createdTo,
             @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate modifiedFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate modifiedTo) { try {
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate modifiedTo) {
+
+        try {
             String proprietarioEmail = getAuthenticatedUserEmail();
 
-            LocalDateTime createdFromDT = createdFrom != null ? createdFrom.atStartOfDay() : null;
-        LocalDateTime createdToDT = createdTo != null ? createdTo.atTime(23, 59, 59) : null;
-        LocalDateTime modifiedFromDT = modifiedFrom != null ? modifiedFrom.atStartOfDay() : null;
-        LocalDateTime modifiedToDT = modifiedTo != null ? modifiedTo.atTime(23, 59, 59) : null;
+            // normalizza stringhe vuote -> null
+            searchTerm = (searchTerm != null && !searchTerm.isBlank()) ? searchTerm.trim() : null;
+            tag        = (tag != null && !tag.isBlank()) ? tag.trim() : null;
 
-        List<NoteListResponse> note = noteService.searchNotes(
-                proprietarioEmail,
-                searchTerm,
-                tag,
-                createdFromDT,
-                createdToDT,
-                modifiedFromDT,
-                modifiedToDT
+            // converte LocalDate in LocalDateTime (giorno intero)
+            LocalDateTime createdFromDT   = (createdFrom  != null) ? createdFrom.atStartOfDay()        : null;
+            LocalDateTime createdToDT     = (createdTo    != null) ? createdTo.atTime(23, 59, 59)      : null;
+            LocalDateTime modifiedFromDT  = (modifiedFrom != null) ? modifiedFrom.atStartOfDay()       : null;
+            LocalDateTime modifiedToDT    = (modifiedTo   != null) ? modifiedTo.atTime(23, 59, 59)     : null;
+
+            List<NoteListResponse> note = noteService.searchNotes(
+                    proprietarioEmail,
+                    searchTerm,
+                    tag,
+                    createdFromDT,
+                    createdToDT,
+                    modifiedFromDT,
+                    modifiedToDT
             );
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "note", note
-            ));
+
+            return ResponseEntity.ok(Map.of("success", true, "note", note));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", e.getMessage()
-            ));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getNotaById(@PathVariable UUID id) {
         try {

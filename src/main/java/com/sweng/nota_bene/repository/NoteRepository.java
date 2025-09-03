@@ -38,17 +38,24 @@ public interface NoteRepository extends JpaRepository<Note, UUID> {
            "ORDER BY n.dataUltimaModifica DESC")
     List<Note> findAccessibleNotes(@Param("emailUtente") String emailUtente);
 //////
-@Query("SELECT DISTINCT n FROM Note n LEFT JOIN Condivisione c ON n.id = c.idNota " +
-        "WHERE (n.proprietario = :emailUtente OR c.emailUtente = :emailUtente) " +
-        "AND (:termineRicerca IS NULL OR LOWER(n.titolo) LIKE LOWER(CONCAT('%', :termineRicerca, '%')) " +
-        "     OR LOWER(n.contenuto) LIKE LOWER(CONCAT('%', :termineRicerca, '%')) " +
-        "     OR (n.tag IS NOT NULL AND LOWER(n.tag) LIKE LOWER(CONCAT('%', :termineRicerca, '%')))) " +
-        "AND (:tag IS NULL OR n.tag = :tag) " +
-        "AND (:dataCreazioneInizio IS NULL OR n.dataCreazione >= :dataCreazioneInizio) " +
-        "AND (:dataCreazioneFine IS NULL OR n.dataCreazione <= :dataCreazioneFine) " +
-        "AND (:dataUltimaModificaInizio IS NULL OR n.dataUltimaModifica >= :dataUltimaModificaInizio) " +
-        "AND (:dataUltimaModificaFine IS NULL OR n.dataUltimaModifica <= :dataUltimaModificaFine) " +
-        "ORDER BY n.dataUltimaModifica DESC")
+@Query("""
+SELECT DISTINCT n
+FROM Note n
+LEFT JOIN Condivisione c ON n.id = c.idNota
+WHERE (n.proprietario = :emailUtente OR c.emailUtente = :emailUtente)
+AND (
+  :termineRicerca IS NULL OR :termineRicerca = '' OR
+  LOWER(n.titolo)    LIKE CONCAT('%', LOWER(cast(:termineRicerca as string)), '%') OR
+  LOWER(n.contenuto) LIKE CONCAT('%', LOWER(cast(:termineRicerca as string)), '%') OR
+  (n.tag IS NOT NULL AND LOWER(n.tag) LIKE CONCAT('%', LOWER(cast(:termineRicerca as string)), '%'))
+)
+AND ( :tag IS NULL OR n.tag = cast(:tag as string) )
+AND ( :dataCreazioneInizio      IS NULL OR n.dataCreazione      >= cast(:dataCreazioneInizio      as timestamp) )
+AND ( :dataCreazioneFine        IS NULL OR n.dataCreazione      <= cast(:dataCreazioneFine        as timestamp) )
+AND ( :dataUltimaModificaInizio IS NULL OR n.dataUltimaModifica >= cast(:dataUltimaModificaInizio as timestamp) )
+AND ( :dataUltimaModificaFine   IS NULL OR n.dataUltimaModifica <= cast(:dataUltimaModificaFine   as timestamp) )
+ORDER BY n.dataUltimaModifica DESC
+""")
 List<Note> searchNotes(
         @Param("emailUtente") String emailUtente,
         @Param("termineRicerca") String termineRicerca,
@@ -58,7 +65,8 @@ List<Note> searchNotes(
         @Param("dataUltimaModificaInizio") LocalDateTime dataUltimaModificaInizio,
         @Param("dataUltimaModificaFine") LocalDateTime dataUltimaModificaFine
 );
-/////////
+
+
     /**
      * Trova le note condivise con un utente specifico
      */
