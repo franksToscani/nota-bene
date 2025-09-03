@@ -1,5 +1,6 @@
 package com.sweng.nota_bene.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -80,6 +81,29 @@ public class NoteService {
                 .collect(Collectors.toList());
     }
 
+    public List<NoteListResponse> searchNotes(
+            String proprietarioEmail,
+            String termineRicerca,
+            String tag,
+            LocalDateTime dataCreazioneInizio,
+            LocalDateTime dataCreazioneFine,
+            LocalDateTime dataUltimaModificaInizio,
+            LocalDateTime dataUltimaModificaFine
+    ) {
+        List<Note> note = noteRepository.searchNotes(
+                proprietarioEmail,
+                termineRicerca,
+                tag,
+                dataCreazioneInizio,
+                dataCreazioneFine,
+                dataUltimaModificaInizio,
+                dataUltimaModificaFine
+        );
+
+        return note.stream()
+                .map(this::mapToNoteListResponse)
+                .collect(Collectors.toList());
+    }
     public NoteResponse getNotaById(UUID id, String proprietarioEmail) {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));
@@ -185,6 +209,7 @@ public class NoteService {
                 note.getId(),
                 note.getTitolo(),
                 note.getContenuto(),
+                note.getDataCreazione(),
                 note.getDataUltimaModifica(),
                 note.getTag(),
                 note.getProprietario()

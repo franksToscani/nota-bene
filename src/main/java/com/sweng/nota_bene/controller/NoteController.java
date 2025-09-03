@@ -1,20 +1,16 @@
 package com.sweng.nota_bene.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.sweng.nota_bene.dto.CreateNoteRequest;
 import com.sweng.nota_bene.dto.NoteListResponse;
@@ -100,6 +96,36 @@ public class NoteController {
         }
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> searchNotes(
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) String autore,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime createdTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime modifiedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime modifiedTo) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            List<NoteListResponse> note = noteService.searchNotes(
+                    proprietarioEmail,
+                    tag,
+                    autore,
+                    createdFrom,
+                    createdTo,
+                    modifiedFrom,
+                    modifiedTo
+            );
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "note", note
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
     @GetMapping("/{id}")
     public ResponseEntity<?> getNotaById(@PathVariable UUID id) {
         try {
