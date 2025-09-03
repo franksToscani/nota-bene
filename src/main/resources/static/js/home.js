@@ -8,7 +8,6 @@
     if (!isHomePage) {
         return;
     }
-
     /**
      * Inizializzazione della pagina home
      */
@@ -21,7 +20,6 @@
             window.location.href = '/';
             return;
         }
-
         // L'header è già stato popolato dagli script comuni!
         // Inizializza solo il gestore delle note
         new NotePageHandler();
@@ -35,7 +33,6 @@
     }
 
 })();
-
 /**
  * Gestore delle note - Versione semplificata
  */
@@ -44,6 +41,13 @@ class NotePageHandler {
         this.notesContainer = document.getElementById('notes-container');
         this.emptyState = document.getElementById('empty-state');
         this.searchInput = document.getElementById('search-input');
+        this.toolbar = document.querySelector('.toolbar');
+        this.createdFrom = document.getElementById('createdFrom');
+        this.createdTo = document.getElementById('createdTo');
+        this.modifiedFrom = document.getElementById('modifiedFrom');
+        this.modifiedTo = document.getElementById('modifiedTo');
+        this.applyFiltersBtn = document.getElementById('apply-filters-btn');
+        this.resetFiltersBtn = document.getElementById('reset-filters-btn');
         this.notes = [];
         this.filteredNotes = [];
         this.activeDropdown = null;
@@ -61,6 +65,8 @@ class NotePageHandler {
                 this.filterNotes(e.target.value.trim());
             });
         }
+
+        this.initFilterButtons();
 
         // Chiudi dropdown se si clicca fuori
         window.addEventListener('click', (e) => {
@@ -95,7 +101,14 @@ class NotePageHandler {
             });
         }
     }
-
+    initFilterButtons() {
+        if (this.applyFiltersBtn) {
+            this.applyFiltersBtn.addEventListener('click', () => this.applyFilters());
+        }
+        if (this.resetFiltersBtn) {
+            this.resetFiltersBtn.addEventListener('click', () => this.resetFilters());
+        }
+    }
     /**
      * Carica l'email dell'utente corrente
      */
@@ -115,7 +128,6 @@ class NotePageHandler {
             console.error('Errore nel caricamento utente corrente:', error);
         }
     }
-
     /**
      * Filtra le note in base al termine di ricerca
      */
@@ -124,15 +136,17 @@ class NotePageHandler {
             this.filteredNotes = [...this.notes];
         } else {
             const term = searchTerm.toLowerCase();
-            this.filteredNotes = this.notes.filter(note => 
-                note.titolo.toLowerCase().includes(term) || 
+            this.filteredNotes = this.notes.filter(note =>
+                note.titolo.toLowerCase().includes(term) ||
                 note.contenuto.toLowerCase().includes(term) ||
                 (note.tag && note.tag.toLowerCase().includes(term))
             );
         }
+        if (this.toolbar) {
+            this.toolbar.classList.toggle('filters-active', !!searchTerm);
+        }
         this.renderNotes();
     }
-
     /**
      * Toggle espansione della nota
      */
@@ -190,6 +204,44 @@ class NotePageHandler {
         }
     }
 
+
+    async applyFilters() {
+        const params = new URLSearchParams();
+        if (this.createdFrom && this.createdFrom.value) {
+            params.append('createdFrom', this.createdFrom.value);
+        }
+        if (this.createdTo && this.createdTo.value) {
+            params.append('createdTo', this.createdTo.value);
+        }
+        if (this.modifiedFrom && this.modifiedFrom.value) {
+            params.append('modifiedFrom', this.modifiedFrom.value);
+        }
+        if (this.modifiedTo && this.modifiedTo.value) {
+            params.append('modifiedTo', this.modifiedTo.value);
+        }
+
+        try {
+            const response = await fetch('/api/note/search?' + params.toString(), {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.notes = data.note || [];
+                this.filterNotes(this.searchInput ? this.searchInput.value.trim() : '');
+            }
+        } catch (error) {
+            console.error('Errore nell\'applicazione dei filtri:', error);
+        }
+    }
+
+    async resetFilters() {
+        if (this.createdFrom) this.createdFrom.value = '';
+        if (this.createdTo) this.createdTo.value = '';
+        if (this.modifiedFrom) this.modifiedFrom.value = '';
+        if (this.modifiedTo) this.modifiedTo.value = '';
+        await this.loadNotes();
+    }
     /**
      * Carica tutte le note dal server
      */
@@ -223,6 +275,11 @@ class NotePageHandler {
      */
     renderNotes() {
         if (!this.notesContainer) return;
+
+        const resultsCount = document.getElementById('results-count');
+        if (resultsCount) {
+            resultsCount.textContent = this.filteredNotes.length;
+        }
 
         if (this.filteredNotes.length === 0) {
             this.showEmptyState();

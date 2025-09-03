@@ -83,7 +83,7 @@ public class NoteService {
 
     public List<NoteListResponse> searchNotes(
             String proprietarioEmail,
-            String termineRicerca,
+            String searchTerm,
             String tag,
             LocalDateTime dataCreazioneInizio,
             LocalDateTime dataCreazioneFine,
@@ -92,7 +92,7 @@ public class NoteService {
     ) {
         List<Note> note = noteRepository.searchNotes(
                 proprietarioEmail,
-                termineRicerca,
+                searchTerm,
                 tag,
                 dataCreazioneInizio,
                 dataCreazioneFine,

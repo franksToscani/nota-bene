@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -98,22 +99,27 @@ public class NoteController {
 
     @GetMapping("/search")
     public ResponseEntity<?> searchNotes(
+            @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String tag,
-            @RequestParam(required = false) String autore,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime createdFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime createdTo,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime modifiedFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime modifiedTo) {
-        try {
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate createdTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate modifiedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate modifiedTo) { try {
             String proprietarioEmail = getAuthenticatedUserEmail();
-            List<NoteListResponse> note = noteService.searchNotes(
-                    proprietarioEmail,
-                    tag,
-                    autore,
-                    createdFrom,
-                    createdTo,
-                    modifiedFrom,
-                    modifiedTo
+
+            LocalDateTime createdFromDT = createdFrom != null ? createdFrom.atStartOfDay() : null;
+        LocalDateTime createdToDT = createdTo != null ? createdTo.atTime(23, 59, 59) : null;
+        LocalDateTime modifiedFromDT = modifiedFrom != null ? modifiedFrom.atStartOfDay() : null;
+        LocalDateTime modifiedToDT = modifiedTo != null ? modifiedTo.atTime(23, 59, 59) : null;
+
+        List<NoteListResponse> note = noteService.searchNotes(
+                proprietarioEmail,
+                searchTerm,
+                tag,
+                createdFromDT,
+                createdToDT,
+                modifiedFromDT,
+                modifiedToDT
             );
             return ResponseEntity.ok(Map.of(
                     "success", true,
