@@ -9,5 +9,6 @@ public record NoteListResponse(
         String contenuto,
         java.time.LocalDateTime dataUltimaModifica,
         String tag,
-        String proprietario
+        String proprietario,
+        UUID idCartella
 ) {}

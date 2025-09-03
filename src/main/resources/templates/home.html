@@ -13,7 +13,6 @@
 <!-- Header -->
 <div th:replace="fragments/header :: main-header"></div>
 
-<!-- Main Content -->
 <main class="main-content">
     <!-- Page Header -->
     <div class="page-header">
@@ -25,36 +24,45 @@
         <div class="search-container">
             <div class="search-icon">🔍</div>
             <input
-                    type="text"
-                    class="search-input"
-                    placeholder="Cerca nelle tue note e tag..."
-                    id="search-input"
+                type="text"
+                class="search-input"
+                placeholder="Cerca nelle tue note e tag..."
+                id="search-input"
             >
         </div>
 
         <div class="toolbar-actions">
-            <a href="/form" class="btn primary" id="new-note-btn">
-                Nuova nota
-            </a>
+            <a href="/form" class="btn primary" id="new-note-btn">Nuova nota</a>
         </div>
     </div>
 
-    <!-- Notes Container -->
-    <div class="notes-container" id="notes-container">
+    <!-- Container note -->
+    <div id="notes-container" class="notes-container">
         <!-- Le note verranno caricate dinamicamente -->
     </div>
 
     <!-- Empty State -->
-    <div class="empty-state" id="empty-state" style="display: none;">
+    <div id="empty-state" class="empty-state" style="display: none;">
         <div class="empty-icon">📝</div>
         <h2 class="empty-title">Nessuna nota trovata</h2>
         <p class="empty-description">Inizia creando la tua prima nota!</p>
     </div>
+
+    <!-- Controlli note -->
+    <div class="notes-controls">
+        <button id="toggle-view-btn" class="btn secondary">Visualizza per cartelle</button>
+        <select id="note-folder-select" style="display:none;">
+            <option value="">Tutte le cartelle</option>
+        </select>
+    </div>
+    
 </main>
 
+<!-- Script -->
 <script th:src="@{/js/home.js}"></script>
 <div th:replace="fragments/scripts :: auth-scripts"></div>
 <script th:src="@{/js/note-viewer.js}"></script>
+<script th:src="@{/js/noteFolder.js}"></script>
 
 </body>
 </html>

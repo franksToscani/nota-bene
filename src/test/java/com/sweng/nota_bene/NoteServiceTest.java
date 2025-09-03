@@ -60,11 +60,12 @@ class NoteServiceTest {
         List<CondivisioneRequest> condivisioni = List.of(
             new CondivisioneRequest(altroUtenteEmail, TipoCondivisione.lettura)
         );
-        
+        UUID cartellaId = null; // o un UUID valido se vuoi testare con una cartella
         CreateNoteRequest request = new CreateNoteRequest(
             "Nuova Nota",
             "Contenuto della nuova nota",
             "lavoro",
+            cartellaId,
             condivisioni
         );
         
@@ -89,54 +90,62 @@ class NoteServiceTest {
     }
     
     @Test
-    void testCreateNote_WithInvalidTag_ThrowsException() {
-        // Given
-        CreateNoteRequest request = new CreateNoteRequest(
-            "Nuova Nota",
-            "Contenuto della nuova nota",
-            "tag_inesistente",
-            null
-        );
-        
-        when(tagService.existsByNome("tag_inesistente")).thenReturn(false);
-        
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> noteService.createNote(request, proprietarioEmail)
-        );
-        
-        assertEquals("Tag non valido: tag_inesistente", exception.getMessage());
-        verify(noteRepository, never()).save(any(Note.class));
-    }
+void testCreateNote_WithInvalidTag_ThrowsException() {
+    // Given
+    UUID cartellaId = null; // puoi anche usare UUID.randomUUID() se vuoi simulare una cartella
+    CreateNoteRequest request = new CreateNoteRequest(
+        "Nuova Nota",
+        "Contenuto della nuova nota",
+        "tag_inesistente",
+        cartellaId, // cartella opzionale
+        null        // lista condivisioni
+    );
+
+    when(tagService.existsByNome("tag_inesistente")).thenReturn(false);
+
+    // When & Then
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> noteService.createNote(request, proprietarioEmail)
+    );
+
+    assertEquals("Tag non valido: tag_inesistente", exception.getMessage());
+    verify(noteRepository, never()).save(any(Note.class));
+}
+
     
     @Test
-    void testCreateNote_WithEmptyTag_Success() {
-        // Given
-        CreateNoteRequest request = new CreateNoteRequest(
-            "Nuova Nota",
-            "Contenuto della nuova nota",
-            "",
-            null
-        );
-        
-        Note noteWithoutTag = new Note();
-        noteWithoutTag.setId(noteId);
-        noteWithoutTag.setTitolo("Nuova Nota");
-        noteWithoutTag.setContenuto("Contenuto della nuova nota");
-        noteWithoutTag.setProprietario(proprietarioEmail);
-        
-        when(noteRepository.save(any(Note.class))).thenReturn(noteWithoutTag);
-        when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
-        
-        // When
-        NoteResponse result = noteService.createNote(request, proprietarioEmail);
-        
-        // Then
-        assertNotNull(result);
-        assertNull(result.tag());
-        verify(tagService, never()).existsByNome(anyString());
-    }
+void testCreateNote_WithEmptyTag_Success() {
+    // Given
+    UUID cartellaId = null; // se vuoi associare una cartella, metti UUID.randomUUID()
+    CreateNoteRequest request = new CreateNoteRequest(
+        "Nuova Nota",
+        "Contenuto della nuova nota",
+        "",          // tag vuoto
+        cartellaId,  // cartella opzionale
+        null         // lista condivisioni
+    );
+
+    Note noteWithoutTag = new Note();
+    noteWithoutTag.setId(noteId);
+    noteWithoutTag.setTitolo("Nuova Nota");
+    noteWithoutTag.setContenuto("Contenuto della nuova nota");
+    noteWithoutTag.setProprietario(proprietarioEmail);
+    noteWithoutTag.setIdCartella(cartellaId); // importante per il test della cartella
+
+    when(noteRepository.save(any(Note.class))).thenReturn(noteWithoutTag);
+    when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
+
+    // When
+    NoteResponse result = noteService.createNote(request, proprietarioEmail);
+
+    // Then
+    assertNotNull(result);
+    assertNull(result.tag());
+    assertNull(result.idCartella()); // controlla che la cartella sia null
+    verify(tagService, never()).existsByNome(anyString());
+}
+
     
     @Test
     void testGetNoteUtente_Success() {
@@ -216,132 +225,147 @@ class NoteServiceTest {
     }
     
     @Test
-    void testUpdateNote_Success() {
-        // Given
-        List<CondivisioneRequest> condivisioni = List.of(
-            new CondivisioneRequest(altroUtenteEmail, TipoCondivisione.scrittura)
-        );
-        
-        UpdateNoteRequest request = new UpdateNoteRequest(
-            "Titolo Modificato",
-            "Contenuto modificato",
-            "studio",
-            condivisioni
-        );
-        
-        Note updatedNote = new Note();
-        updatedNote.setId(noteId);
-        updatedNote.setTitolo("Titolo Modificato");
-        updatedNote.setContenuto("Contenuto modificato");
-        updatedNote.setProprietario(proprietarioEmail);
-        updatedNote.setTag("studio");
-        
-        when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
-        when(condivisioneService.hasWritePermission(noteId, proprietarioEmail, proprietarioEmail))
-            .thenReturn(true);
-        when(tagService.existsByNome("studio")).thenReturn(true);
-        when(noteRepository.save(any(Note.class))).thenReturn(updatedNote);
-        when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(
-            List.of(new CondivisioneResponse(altroUtenteEmail, TipoCondivisione.scrittura))
-        );
-        
-        // When
-        NoteResponse result = noteService.updateNote(noteId, request, proprietarioEmail);
-        
-        // Then
-        assertEquals("Titolo Modificato", result.titolo());
-        assertEquals("Contenuto modificato", result.contenuto());
-        assertEquals("studio", result.tag());
-        
-        verify(condivisioneService).updateCondivisioni(noteId, condivisioni, proprietarioEmail);
-    }
+void testUpdateNote_Success() {
+    // Given
+    List<CondivisioneRequest> condivisioni = List.of(
+        new CondivisioneRequest(altroUtenteEmail, TipoCondivisione.scrittura)
+    );
+
+    UUID cartellaId = null; // o UUID.randomUUID() se vuoi associare una cartella
+    UpdateNoteRequest request = new UpdateNoteRequest(
+        "Titolo Modificato",
+        "Contenuto modificato",
+        "studio",    // tag
+        cartellaId,  // cartella opzionale
+        condivisioni // lista condivisioni
+    );
+
+    Note updatedNote = new Note();
+    updatedNote.setId(noteId);
+    updatedNote.setTitolo("Titolo Modificato");
+    updatedNote.setContenuto("Contenuto modificato");
+    updatedNote.setProprietario(proprietarioEmail);
+    updatedNote.setTag("studio");
+    updatedNote.setIdCartella(cartellaId);
+
+    when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
+    when(condivisioneService.hasWritePermission(noteId, proprietarioEmail, proprietarioEmail))
+        .thenReturn(true);
+    when(tagService.existsByNome("studio")).thenReturn(true);
+    when(noteRepository.save(any(Note.class))).thenReturn(updatedNote);
+    when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(
+        List.of(new CondivisioneResponse(altroUtenteEmail, TipoCondivisione.scrittura))
+    );
+
+    // When
+    NoteResponse result = noteService.updateNote(noteId, request, proprietarioEmail);
+
+    // Then
+    assertEquals("Titolo Modificato", result.titolo());
+    assertEquals("Contenuto modificato", result.contenuto());
+    assertEquals("studio", result.tag());
+    assertEquals(cartellaId, result.idCartella()); // verifica anche la cartella
+
+    verify(condivisioneService).updateCondivisioni(noteId, condivisioni, proprietarioEmail);
+}
+
     
     @Test
-    void testUpdateNote_RemoveTag_Success() {
-        // Given
-        UpdateNoteRequest request = new UpdateNoteRequest(
-            "Titolo Modificato",
-            "Contenuto modificato",
-            null,
-            null
-        );
-        
-        Note updatedNote = new Note();
-        updatedNote.setId(noteId);
-        updatedNote.setTitolo("Titolo Modificato");
-        updatedNote.setContenuto("Contenuto modificato");
-        updatedNote.setProprietario(proprietarioEmail);
-        updatedNote.setTag(null);
-        
-        when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
-        when(condivisioneService.hasWritePermission(noteId, proprietarioEmail, proprietarioEmail))
-            .thenReturn(true);
-        when(noteRepository.save(any(Note.class))).thenReturn(updatedNote);
-        when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
-        
-        // When
-        NoteResponse result = noteService.updateNote(noteId, request, proprietarioEmail);
-        
-        // Then
-        assertNull(result.tag());
-        verify(tagService, never()).existsByNome(anyString());
-    }
+void testUpdateNote_RemoveTag_Success() {
+    // Given
+    UUID cartellaId = null; // puoi usare un UUID se vuoi associare una cartella
+    UpdateNoteRequest request = new UpdateNoteRequest(
+        "Titolo Modificato",
+        "Contenuto modificato",
+        null,       // rimuove il tag
+        cartellaId, // cartella opzionale
+        null        // lista condivisioni
+    );
+
+    Note updatedNote = new Note();
+    updatedNote.setId(noteId);
+    updatedNote.setTitolo("Titolo Modificato");
+    updatedNote.setContenuto("Contenuto modificato");
+    updatedNote.setProprietario(proprietarioEmail);
+    updatedNote.setTag(null);
+    updatedNote.setIdCartella(cartellaId);
+
+    when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
+    when(condivisioneService.hasWritePermission(noteId, proprietarioEmail, proprietarioEmail))
+        .thenReturn(true);
+    when(noteRepository.save(any(Note.class))).thenReturn(updatedNote);
+    when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
+
+    // When
+    NoteResponse result = noteService.updateNote(noteId, request, proprietarioEmail);
+
+    // Then
+    assertNull(result.tag());
+    assertEquals(cartellaId, result.idCartella()); // verifica anche la cartella
+    verify(tagService, never()).existsByNome(anyString());
+}
+
     
     @Test
-    void testUpdateNote_NoWritePermission_ThrowsException() {
-        // Given
-        UpdateNoteRequest request = new UpdateNoteRequest(
-            "Titolo Modificato",
-            "Contenuto modificato",
-            null,
-            null
-        );
-        
-        when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
-        when(condivisioneService.hasWritePermission(noteId, altroUtenteEmail, proprietarioEmail))
-            .thenReturn(false);
-        
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> noteService.updateNote(noteId, request, altroUtenteEmail)
-        );
-        
-        assertEquals("Non hai i permessi per modificare questa nota", exception.getMessage());
-    }
+void testUpdateNote_NoWritePermission_ThrowsException() {
+    // Given
+    UUID cartellaId = null; // cartella opzionale
+    UpdateNoteRequest request = new UpdateNoteRequest(
+        "Titolo Modificato",
+        "Contenuto modificato",
+        null,       // tagId
+        cartellaId, // idCartella
+        null        // lista condivisioni
+    );
+
+    when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
+    when(condivisioneService.hasWritePermission(noteId, altroUtenteEmail, proprietarioEmail))
+        .thenReturn(false);
+
+    // When & Then
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> noteService.updateNote(noteId, request, altroUtenteEmail)
+    );
+
+    assertEquals("Non hai i permessi per modificare questa nota", exception.getMessage());
+}
+
     
     @Test
-    void testUpdateNote_NonOwnerCannotUpdateCondivisioni() {
-        // Given
-        List<CondivisioneRequest> condivisioni = List.of(
-            new CondivisioneRequest("nuovo@test.com", TipoCondivisione.lettura)
-        );
-        
-        UpdateNoteRequest request = new UpdateNoteRequest(
-            "Titolo Modificato",
-            "Contenuto modificato",
-            null,
-            condivisioni
-        );
-        
-        Note updatedNote = new Note();
-        updatedNote.setId(noteId);
-        updatedNote.setTitolo("Titolo Modificato");
-        updatedNote.setContenuto("Contenuto modificato");
-        updatedNote.setProprietario(proprietarioEmail);
-        
-        when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
-        when(condivisioneService.hasWritePermission(noteId, altroUtenteEmail, proprietarioEmail))
-            .thenReturn(true);
-        when(noteRepository.save(any(Note.class))).thenReturn(updatedNote);
-        when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
-        
-        // When
-        noteService.updateNote(noteId, request, altroUtenteEmail);
-        
-        // Then
-        verify(condivisioneService, never()).updateCondivisioni(any(), any(), any());
-    }
+void testUpdateNote_NonOwnerCannotUpdateCondivisioni() {
+    // Given
+    List<CondivisioneRequest> condivisioni = List.of(
+        new CondivisioneRequest("nuovo@test.com", TipoCondivisione.lettura)
+    );
+    
+    UpdateNoteRequest request = new UpdateNoteRequest(
+        "Titolo Modificato",
+        "Contenuto modificato",
+        null,       // tagId
+        null,       // idCartella
+        condivisioni
+    );
+    
+    Note updatedNote = new Note();
+    updatedNote.setId(noteId);
+    updatedNote.setTitolo("Titolo Modificato");
+    updatedNote.setContenuto("Contenuto modificato");
+    updatedNote.setProprietario(proprietarioEmail);
+    
+    when(noteRepository.findById(noteId)).thenReturn(Optional.of(sampleNote));
+    when(condivisioneService.hasWritePermission(noteId, altroUtenteEmail, proprietarioEmail))
+        .thenReturn(true);
+    when(noteRepository.save(any(Note.class))).thenReturn(updatedNote);
+    when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
+    
+    // When
+    noteService.updateNote(noteId, request, altroUtenteEmail);
+    
+    // Then
+    verify(condivisioneService, never()).updateCondivisioni(any(), any(), any());
+}
+
     
     @Test
     void testDeleteNote_Success() {
@@ -406,44 +430,48 @@ class NoteServiceTest {
     }
     
     @Test
-    void testCreateNote_WithNullCondivisioni_Success() {
-        // Given
-        CreateNoteRequest request = new CreateNoteRequest(
-            "Nuova Nota",
-            "Contenuto della nuova nota",
-            null,
-            null
-        );
-        
-        when(noteRepository.save(any(Note.class))).thenReturn(sampleNote);
-        when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
-        
-        // When
-        NoteResponse result = noteService.createNote(request, proprietarioEmail);
-        
-        // Then
-        assertNotNull(result);
-        verify(condivisioneService, never()).updateCondivisioni(any(), any(), any());
-    }
+void testCreateNote_WithNullCondivisioni_Success() {
+    // Given
+    CreateNoteRequest request = new CreateNoteRequest(
+        "Nuova Nota",
+        "Contenuto della nuova nota",
+        null,       // tagId
+        null,       // idCartella
+        null        // condivisioni
+    );
     
-    @Test
-    void testCreateNote_WithEmptyCondivisioni_Success() {
-        // Given
-        CreateNoteRequest request = new CreateNoteRequest(
-            "Nuova Nota",
-            "Contenuto della nuova nota",
-            null,
-            Collections.emptyList()
-        );
-        
-        when(noteRepository.save(any(Note.class))).thenReturn(sampleNote);
-        when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
-        
-        // When
-        NoteResponse result = noteService.createNote(request, proprietarioEmail);
-        
-        // Then
-        assertNotNull(result);
-        verify(condivisioneService, never()).updateCondivisioni(any(), any(), any());
-    }
+    when(noteRepository.save(any(Note.class))).thenReturn(sampleNote);
+    when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
+    
+    // When
+    NoteResponse result = noteService.createNote(request, proprietarioEmail);
+    
+    // Then
+    assertNotNull(result);
+    verify(condivisioneService, never()).updateCondivisioni(any(), any(), any());
+}
+
+    
+   @Test
+void testCreateNote_WithEmptyCondivisioni_Success() {
+    // Given
+    CreateNoteRequest request = new CreateNoteRequest(
+        "Nuova Nota",
+        "Contenuto della nuova nota",
+        null,                  // tagId
+        null,                  // idCartella
+        Collections.emptyList() // condivisioni
+    );
+    
+    when(noteRepository.save(any(Note.class))).thenReturn(sampleNote);
+    when(condivisioneService.getCondivisioniByNota(noteId)).thenReturn(Collections.emptyList());
+    
+    // When
+    NoteResponse result = noteService.createNote(request, proprietarioEmail);
+    
+    // Then
+    assertNotNull(result);
+    verify(condivisioneService, never()).updateCondivisioni(any(), any(), any());
+}
+
 }
