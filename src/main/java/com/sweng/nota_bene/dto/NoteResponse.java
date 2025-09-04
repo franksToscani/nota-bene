@@ -7,8 +7,8 @@ public record NoteResponse(
         String titolo,
         String contenuto,
         String proprietario,
-        java.time.LocalDateTime dataCreazione,
-        java.time.LocalDateTime dataUltimaModifica,
+        java.time.OffsetDateTime dataCreazione,
+        java.time.OffsetDateTime dataUltimaModifica,
         UUID idCartella,
         String tag,
         List<CondivisioneResponse> condivisioni

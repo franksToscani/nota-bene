@@ -1,7 +1,7 @@
 package com.sweng.nota_bene.model;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -30,10 +30,10 @@ public class Note {
     private String proprietario;
 
     @Column(name = "data_creazione", nullable = false)
-    private LocalDateTime dataCreazione;
+    private OffsetDateTime dataCreazione;
 
     @Column(name = "data_ultima_modifica", nullable = false)
-    private LocalDateTime dataUltimaModifica;
+    private OffsetDateTime dataUltimaModifica;
 
     @Column(name = "id_cartella")
     private UUID idCartella;
@@ -43,15 +43,14 @@ public class Note {
 
     @PrePersist
     protected void onCreate() {
-        ZoneId zoneId = ZoneId.of("Europe/Rome");
-        dataCreazione = LocalDateTime.now(zoneId);
-        dataUltimaModifica = LocalDateTime.now(zoneId);
+        dataCreazione = OffsetDateTime.now(ZoneOffset.UTC);
+        dataUltimaModifica = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     @PreUpdate
     protected void onUpdate() {
-        ZoneId zoneId = ZoneId.of("Europe/Rome");
-        dataUltimaModifica = LocalDateTime.now(zoneId);
+        dataUltimaModifica = OffsetDateTime.now(ZoneOffset.UTC);
+
     }
 
     // Getters
@@ -59,8 +58,8 @@ public class Note {
     public String getTitolo() { return titolo; }
     public String getContenuto() { return contenuto; }
     public String getProprietario() { return proprietario; }
-    public LocalDateTime getDataCreazione() { return dataCreazione; }
-    public LocalDateTime getDataUltimaModifica() { return dataUltimaModifica; }
+     public OffsetDateTime getDataCreazione() { return dataCreazione; }
+    public OffsetDateTime getDataUltimaModifica() { return dataUltimaModifica; }
     public UUID getIdCartella() { return idCartella; }
     public String getTag() { return tag; }
 
@@ -69,8 +68,8 @@ public class Note {
     public void setTitolo(String titolo) { this.titolo = titolo; }
     public void setContenuto(String contenuto) { this.contenuto = contenuto; }
     public void setProprietario(String proprietario) { this.proprietario = proprietario; }
-    public void setDataCreazione(LocalDateTime dataCreazione) { this.dataCreazione = dataCreazione; }
-    public void setDataUltimaModifica(LocalDateTime dataUltimaModifica) { this.dataUltimaModifica = dataUltimaModifica; }
+    public void setDataCreazione(OffsetDateTime dataCreazione) { this.dataCreazione = dataCreazione; }
+    public void setDataUltimaModifica(OffsetDateTime dataUltimaModifica) { this.dataUltimaModifica = dataUltimaModifica; }
     public void setIdCartella(UUID idCartella) { this.idCartella = idCartella; }
     public void setTag(String tag) { this.tag = tag; }
 }

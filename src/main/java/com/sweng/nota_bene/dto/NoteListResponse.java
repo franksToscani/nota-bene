@@ -7,8 +7,8 @@ public record NoteListResponse(
         UUID id,
         String titolo,
         String contenuto,
-        java.time.LocalDateTime dataCreazione,
-        java.time.LocalDateTime dataUltimaModifica,
+        java.time.OffsetDateTime dataCreazione,
+        java.time.OffsetDateTime dataUltimaModifica,
         String tag,
         String proprietario
 ) {}

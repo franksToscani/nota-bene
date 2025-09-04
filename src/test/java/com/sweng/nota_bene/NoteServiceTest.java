@@ -1,6 +1,6 @@
 package com.sweng.nota_bene;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +20,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.data.jpa.domain.Specification;
 
 import com.sweng.nota_bene.dto.CondivisioneRequest;
 import com.sweng.nota_bene.dto.CondivisioneResponse;
@@ -167,7 +170,7 @@ class NoteServiceTest {
         noteCondivisa.setTitolo("Nota Condivisa");
         noteCondivisa.setContenuto("Contenuto condiviso");
         noteCondivisa.setProprietario(altroUtenteEmail);
-        noteCondivisa.setDataUltimaModifica(LocalDateTime.now().minusHours(1));
+        noteCondivisa.setDataUltimaModifica(OffsetDateTime.now().minusHours(1));
         
         when(noteRepository.findByProprietarioOrderByDataUltimaModificaDesc(proprietarioEmail))
             .thenReturn(noteProprietario);
@@ -430,7 +433,7 @@ class NoteServiceTest {
         );
         
         assertEquals("Solo il proprietario può eliminare questa nota", exception.getMessage());
-        verify(noteRepository, never()).delete(any());
+        verify(noteRepository, never()).delete((Specification<Note>) any());
     }
     
     @Test
@@ -508,5 +511,52 @@ class NoteServiceTest {
         // Then
         assertNotNull(result);
         verify(condivisioneService, never()).updateCondivisioni(any(), any(), any());
+    }
+
+    @Test
+    void testSearchNotes_WithCombinedFilters() {
+        OffsetDateTime now = OffsetDateTime.now();
+        sampleNote.setDataCreazione(now.minusDays(2));
+        sampleNote.setDataUltimaModifica(now.minusDays(1));
+
+        when(condivisioneService.getAccessibleNoteIds(proprietarioEmail))
+                .thenReturn(Collections.emptyList());
+        when(noteRepository.findAll(Mockito.<Specification<Note>>any()))
+                .thenReturn(List.of(sampleNote));
+
+        List<NoteListResponse> result = noteService.searchNotes(
+                proprietarioEmail,
+                "Test",
+                "lavoro",
+                now.minusDays(3),
+                now.minusDays(1),
+                now.minusDays(2),
+                now
+        );
+
+        assertEquals(1, result.size());
+        assertEquals(sampleNote.getTitolo(), result.get(0).titolo());
+        verify(noteRepository).findAll(Mockito.<Specification<Note>>any());
+    }
+
+    @Test
+    void testSearchNotes_NoResults() {
+        when(condivisioneService.getAccessibleNoteIds(proprietarioEmail))
+                .thenReturn(Collections.emptyList());
+        when(noteRepository.findAll(Mockito.<Specification<Note>>any()))
+                .thenReturn(Collections.emptyList());
+
+        List<NoteListResponse> result = noteService.searchNotes(
+                proprietarioEmail,
+                "Nessuna",
+                "altro",
+                null,
+                null,
+                null,
+                null
+        );
+
+        assertEquals(0, result.size());
+        verify(noteRepository).findAll(Mockito.<Specification<Note>>any());
     }
 }

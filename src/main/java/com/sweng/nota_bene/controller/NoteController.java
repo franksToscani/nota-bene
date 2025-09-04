@@ -1,7 +1,6 @@
 package com.sweng.nota_bene.controller;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -101,32 +100,23 @@ public class NoteController {
     public ResponseEntity<?> searchNotes(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String tag,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate createdFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate createdTo,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate modifiedFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate modifiedTo) {
-
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime createdTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime modifiedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime modifiedTo) {
         try {
             String proprietarioEmail = getAuthenticatedUserEmail();
-
             // normalizza stringhe vuote -> null
             searchTerm = (searchTerm != null && !searchTerm.isBlank()) ? searchTerm.trim() : null;
             tag        = (tag != null && !tag.isBlank()) ? tag.trim() : null;
-
-            // converte LocalDate in LocalDateTime (giorno intero)
-            LocalDateTime createdFromDT   = (createdFrom  != null) ? createdFrom.atStartOfDay()        : null;
-            LocalDateTime createdToDT     = (createdTo    != null) ? createdTo.atTime(23, 59, 59)      : null;
-            LocalDateTime modifiedFromDT  = (modifiedFrom != null) ? modifiedFrom.atStartOfDay()       : null;
-            LocalDateTime modifiedToDT    = (modifiedTo   != null) ? modifiedTo.atTime(23, 59, 59)     : null;
-
             List<NoteListResponse> note = noteService.searchNotes(
                     proprietarioEmail,
                     searchTerm,
                     tag,
-                    createdFromDT,
-                    createdToDT,
-                    modifiedFromDT,
-                    modifiedToDT
+                    createdFrom,
+                    createdTo,
+                    modifiedFrom,
+                    modifiedTo
             );
 
             return ResponseEntity.ok(Map.of("success", true, "note", note));

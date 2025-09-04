@@ -1,6 +1,6 @@
 package com.sweng.nota_bene.service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,6 +15,8 @@ import com.sweng.nota_bene.dto.NoteResponse;
 import com.sweng.nota_bene.dto.UpdateNoteRequest;
 import com.sweng.nota_bene.model.Note;
 import com.sweng.nota_bene.repository.NoteRepository;
+import com.sweng.nota_bene.repository.NoteSpecification;
+
 
 @Service
 public class NoteService {
@@ -85,20 +87,22 @@ public class NoteService {
             String proprietarioEmail,
             String searchTerm,
             String tag,
-            LocalDateTime dataCreazioneInizio,
-            LocalDateTime dataCreazioneFine,
-            LocalDateTime dataUltimaModificaInizio,
-            LocalDateTime dataUltimaModificaFine
+            OffsetDateTime dataCreazioneInizio,
+            OffsetDateTime dataCreazioneFine,
+            OffsetDateTime dataUltimaModificaInizio,
+            OffsetDateTime dataUltimaModificaFine
     ) {
-        List<Note> note = noteRepository.searchNotes(
-                proprietarioEmail,
-                searchTerm,
-                tag,
-                dataCreazioneInizio,
-                dataCreazioneFine,
-                dataUltimaModificaInizio,
-                dataUltimaModificaFine
-        );
+        List<UUID> noteCondiviseIds = condivisioneService.getAccessibleNoteIds(proprietarioEmail);
+
+        var spec = NoteSpecification.withOwnerOrShared(proprietarioEmail, noteCondiviseIds)
+                .and(NoteSpecification.withSearchTerm(searchTerm))
+                .and(NoteSpecification.withTag(tag))
+                .and(NoteSpecification.withCreationDateBetween(dataCreazioneInizio, dataCreazioneFine))
+                .and(NoteSpecification.withLastModifiedDateBetween(dataUltimaModificaInizio, dataUltimaModificaFine));
+
+        List<Note> note = noteRepository.findAll(spec);
+
+        note.sort((a, b) -> b.getDataUltimaModifica().compareTo(a.getDataUltimaModifica()));
 
         return note.stream()
                 .map(this::mapToNoteListResponse)
