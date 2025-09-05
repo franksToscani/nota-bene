@@ -247,11 +247,9 @@ class NotePageHandler {
         if (this.createdTo) this.createdTo.value = '';
         if (this.modifiedFrom) this.modifiedFrom.value = '';
         if (this.modifiedTo) this.modifiedTo.value = '';
-        const resultsCount = document.getElementById('results-count');
-        if (resultsCount) {
-            resultsCount.textContent = '0';
-        }
+        if (this.searchInput) this.searchInput.value = '';
         await this.loadNotes();
+        this.filterNotes('');
     }
     /**
      * Carica tutte le note dal server
@@ -289,7 +287,9 @@ class NotePageHandler {
 
         const resultsCount = document.getElementById('results-count');
         if (resultsCount) {
-            resultsCount.textContent = this.filteredNotes.length;
+            const searchActive = this.searchInput && this.searchInput.value.trim() !== '';
+            const filtersActive = this.toolbar && this.toolbar.classList.contains('filters-active');
+            resultsCount.textContent = (searchActive || filtersActive) ? this.filteredNotes.length : '0';
         }
 
         if (this.filteredNotes.length === 0) {
