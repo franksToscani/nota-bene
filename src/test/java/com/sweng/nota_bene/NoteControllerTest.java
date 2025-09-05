@@ -70,14 +70,18 @@ class NoteControllerTest {
         OffsetDateTime modifiedFromODT = OffsetDateTime.of(2024, 1, 3, 0, 0, 0, 0, ZoneOffset.UTC);
         OffsetDateTime modifiedToODT = OffsetDateTime.of(2024, 1, 4, 23, 59, 59, 0, ZoneOffset.UTC);
 
+        UUID cartellaId1 = UUID.randomUUID();
+        UUID cartellaId2 = UUID.randomUUID();
+
         NoteListResponse note1 = new NoteListResponse(
                 UUID.randomUUID(),
                 "Nota 1",
                 "Contenuto",
-                modifiedFromODT,   // già OffsetDateTime
-                modifiedToODT,     // già OffsetDateTime
+                modifiedFromODT,
+                modifiedToODT,
                 "tag1",
-                "user@example.com"
+                "user@example.com",
+                cartellaId1              // <— 8° parametro richiesto
         );
 
         NoteListResponse note2 = new NoteListResponse(
@@ -87,7 +91,8 @@ class NoteControllerTest {
                 createdToODT,
                 modifiedToODT,
                 "tag2",
-                "user@example.com"
+                "user@example.com",
+                cartellaId2              // <— 8° parametro richiesto
         );
 
         when(noteService.searchNotes(any(), any(), any(), any(), any(), any(), any()))
@@ -104,12 +109,12 @@ class NoteControllerTest {
 
         verify(noteService).searchNotes(
                 eq("user@example.com"),
-                isNull(),
-                isNull(),
-                OffsetDateTime.from(eq(createdFromODT.toLocalDateTime())),
-                OffsetDateTime.from(eq(createdToODT.toLocalDateTime())),
-                OffsetDateTime.from(eq(modifiedFromODT.toLocalDateTime())),
-                OffsetDateTime.from(eq(modifiedToODT.toLocalDateTime()))
+                isNull(),          // searchTerm
+                isNull(),          // tag
+                eq(createdFromODT),
+                eq(createdToODT),
+                eq(modifiedFromODT),
+                eq(modifiedToODT)
         );
     }
 
@@ -132,7 +137,7 @@ class NoteControllerTest {
                 eq("test"),
                 isNull(),
                 isNull(),
-                OffsetDateTime.from(eq(createdToODT.toLocalDateTime())),
+                eq(createdToODT),
                 isNull(),
                 isNull()
         );

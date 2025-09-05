@@ -33,6 +33,7 @@
     }
 
 })();
+
 /**
  * Gestore delle note - Versione semplificata
  */
@@ -205,7 +206,6 @@ class NotePageHandler {
             }, 150);
         }
     }
-
 
     async applyFilters() {
         this.toolbar.classList.add('filters-active');

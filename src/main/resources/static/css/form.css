@@ -398,9 +398,6 @@
 }
 
 
-
-
-
 /* Notes Controls */
 .notes-controls {
     display: flex;
@@ -469,19 +466,6 @@
         gap: 0.75rem;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* Contenitore delle cartelle */
@@ -565,5 +549,4 @@
 
 .folder-notes.expanded {
     max-height: 500px; /* oppure auto se vuoi */
-}
 }
