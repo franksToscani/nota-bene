@@ -103,8 +103,10 @@ class NotePageHandler {
     }
     initFilterButtons() {
         if (this.applyFiltersBtn) {
-            this.applyFiltersBtn.addEventListener('click', () => this.applyFilters());
-        }
+            this.applyFiltersBtn.addEventListener('click', () => {
+                console.log('Filtra: handler chiamato senza problemi');
+                this.applyFilters();
+            });        }
         if (this.resetFiltersBtn) {
             this.resetFiltersBtn.addEventListener('click', () => this.resetFilters());
         }
@@ -208,34 +210,43 @@ class NotePageHandler {
     async applyFilters() {
         this.toolbar.classList.add('filters-active');
         const params = new URLSearchParams();
+        /**Normalizzazione delle date prima di pasarle alla ricerca**/
+        const normalizeDate = (dateStr) => /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+            ? `${dateStr}T00:00:00Z`
+            : dateStr;
         if (this.createdFrom && this.createdFrom.value) {
-            params.append('createdFrom', this.createdFrom.value);
+            params.append('createdFrom', normalizeDate(this.createdFrom.value));
         }
         if (this.createdTo && this.createdTo.value) {
-            params.append('createdTo', this.createdTo.value);
+            params.append('createdTo', normalizeDate(this.createdTo.value));
         }
         if (this.modifiedFrom && this.modifiedFrom.value) {
-            params.append('modifiedFrom', this.modifiedFrom.value);
+            params.append('modifiedFrom', normalizeDate(this.modifiedFrom.value));
         }
         if (this.modifiedTo && this.modifiedTo.value) {
-            params.append('modifiedTo', this.modifiedTo.value);
+            params.append('modifiedTo', normalizeDate(this.modifiedTo.value));
         }
-
         try {
+            console.log(params.toString());
             const response = await fetch('/api/note/search?' + params.toString(), {
                 credentials: 'include'
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                this.notes = data.note || [];
-                this.filteredNotes = data.note || [];
-                const searchTerm = this.searchInput ? this.searchInput.value.trim() : '';
-                if (searchTerm) {
-                    this.filterNotes(searchTerm);
-                } else {
-                    this.renderNotes();
-                }            }
+            if (!response.ok) {
+                console.error('Filtra: risposta non OK', response.status, await response.text());
+                return;
+            }
+            console.log('Filtra: risposta OK: il filtro funziona bene');
+
+            const data = await response.json();
+            this.notes = data.note || [];
+            this.filteredNotes = data.note || [];
+            const searchTerm = this.searchInput ? this.searchInput.value.trim() : '';
+            if (searchTerm) {
+                this.filterNotes(searchTerm);
+            } else {
+                this.renderNotes();
+            }
         } catch (error) {
             console.error('Errore nell\'applicazione dei filtri:', error);
         }
