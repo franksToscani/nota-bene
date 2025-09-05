@@ -457,80 +457,89 @@ class NoteFormHandler {
     /**
      * Salva la nota (crea o modifica) con le condivisiones
      */
-    async saveNote() {
-        const titolo = this.titleInput.value.trim();
-        const contenuto = this.contentInput.value.trim();
-        const tagId = this.tagSelect.value || null;
 
-        if (!titolo || !contenuto) {
-            showNotification('Titolo e contenuto sono obbligatori', 'error'); // Usa la funzione comune!
-            return;
-        }
+async saveNote() {
+    const titolo = this.titleInput.value.trim();
+    const contenuto = this.contentInput.value.trim();
+    const tagId = this.tagSelect.value || null;
 
-        if (contenuto.length > 280) {
-            showNotification('Il contenuto non può superare i 280 caratteri', 'error'); // Usa la funzione comune!
-            return;
-        }
+    // Recupera l'id della cartella selezionata (UUID come stringa o null)
+    const folderSelect = document.getElementById('note-folder-select');
+    const idCartella = folderSelect?.value || null;
 
-        try {
-            this.saveBtn.disabled = true;
-            this.saveBtn.textContent = 'Salvataggio...';
-
-            const requestBody = { 
-                titolo, 
-                contenuto,
-                tagId
-            };
-
-            if (this.mode === 'create' || this.isOwner) {
-                requestBody.condivisioni = this.sharedUsers;
-            }
-
-            let response;
-            
-            if (this.mode === 'edit') {
-                response = await fetch(`/api/note/${this.currentNoteId}`, {
-                    method: 'PUT',
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-            } else {
-                response = await fetch('/api/note', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-            }
-
-            if (response.ok) {
-                showNotification(
-                    this.mode === 'edit' ? 'Nota modificata con successo!' : 'Nota creata con successo!', 
-                    'success'
-                ); // Usa la funzione comune!
-                
-                setTimeout(() => {
-                    this.goBack();
-                }, 1000);
-            } else {
-                const errorData = await response.json();
-                showNotification(errorData.message || 'Errore nel salvataggio della nota', 'error'); // Usa la funzione comune!
-            }
-
-        } catch (error) {
-            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
-        } finally {
-            this.saveBtn.disabled = false;
-            this.saveBtn.textContent = this.mode === 'edit' ? 'Salva modifiche' : 'Crea nota';
-        }
+    if (!titolo || !contenuto) {
+        showNotification('Titolo e contenuto sono obbligatori', 'error');
+        return;
     }
+
+    if (contenuto.length > 280) {
+        showNotification('Il contenuto non può superare i 280 caratteri', 'error');
+        return;
+    }
+
+    try {
+        this.saveBtn.disabled = true;
+        this.saveBtn.textContent = 'Salvataggio...';
+
+        // Prepara il body della richiesta
+        const requestBody = { 
+            titolo, 
+            contenuto,
+            tagId,
+            idCartella // UUID stringa o null
+        };
+
+        // Solo il proprietario o in creazione può inviare le condivisioni
+        if (this.mode === 'create' || this.isOwner) {
+            requestBody.condivisioni = this.sharedUsers.length > 0 ? this.sharedUsers : null;
+        }
+
+        let response;
+
+        if (this.mode === 'edit') {
+            response = await fetch(`/api/note/${this.currentNoteId}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+        } else {
+            response = await fetch('/api/note', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+        }
+
+        if (response.ok) {
+            showNotification(
+                this.mode === 'edit' ? 'Nota modificata con successo!' : 'Nota creata con successo!', 
+                'success'
+            );
+            
+            setTimeout(() => this.goBack(), 1000);
+        } else {
+            const errorData = await response.json();
+            showNotification(errorData.message || 'Errore nel salvataggio della nota', 'error');
+        }
+
+    } catch (error) {
+        showNotification('Errore di connessione', 'error');
+    } finally {
+        this.saveBtn.disabled = false;
+        this.saveBtn.textContent = this.mode === 'edit' ? 'Salva modifiche' : 'Crea nota';
+    }
+}
+
+
+
 
     /**
      * Torna alla pagina home

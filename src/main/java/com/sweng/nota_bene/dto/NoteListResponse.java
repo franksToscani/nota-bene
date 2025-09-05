@@ -10,5 +10,6 @@ public record NoteListResponse(
         java.time.OffsetDateTime dataCreazione,
         java.time.OffsetDateTime dataUltimaModifica,
         String tag,
-        String proprietario
+        String proprietario,
+        UUID idCartella
 ) {}

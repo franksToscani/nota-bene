@@ -21,11 +21,13 @@
             </div>
 
             <form id="note-form" class="note-form">
+                <!-- Sezione Titolo -->
                 <div class="form-group">
                     <label for="note-title-input">Titolo</label>
                     <input type="text" id="note-title-input" required maxlength="255" placeholder="Inserisci il titolo...">
                 </div>
 
+                <!-- Sezione Tag -->
                 <div class="form-group">
                     <label for="note-tag-select">Tag</label>
                     <select id="note-tag-select">
@@ -33,6 +35,7 @@
                     </select>
                 </div>
 
+                <!-- Sezione Contenuto -->
                 <div class="form-group">
                     <label for="note-content-input">Contenuto (max 280 caratteri)</label>
                     <textarea id="note-content-input" rows="8" required maxlength="280" placeholder="Scrivi qui il contenuto della tua nota..."></textarea>
@@ -62,6 +65,31 @@
                     </div>
                 </div>
 
+                <!-- Sezione Cartella -->
+                <div class="form-group">
+                    <label for="note-folder-select">Cartella</label>
+                    <div class="folder-section">
+                        <select id="note-folder-select">
+                            <option value="">Seleziona una cartella...</option>
+                            <!-- Le cartelle saranno aggiunte dinamicamente tramite JS -->
+                        </select>
+                        <button type="button" id="create-folder-btn" class="btn secondary">Nuova Cartella</button>
+                    </div>
+                </div>
+
+                <!-- Modale Nuova Cartella -->
+                <div id="new-folder-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3>Nuova Cartella</h3>
+                        <input type="text" id="new-folder-name" placeholder="Nome cartella">
+                        <div class="modal-actions">
+                            <button type="button" id="cancel-new-folder" class="btn secondary">Annulla</button>
+                            <button type="button" id="confirm-new-folder" class="btn primary">Crea</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Azioni Form -->
                 <div class="form-actions">
                     <button type="button" class="btn secondary" id="cancel-btn">Annulla</button>
                     <button type="submit" class="btn primary" id="save-note-btn">Crea nota</button>
@@ -70,7 +98,11 @@
         </div>
     </main>
 
+    <!-- Script JS -->
     <script th:src="@{/js/form.js}"></script>
+    <script th:src="@{/js/cartelle.js}"></script>
+
+    <!-- Scripts di autenticazione -->
     <div th:replace="fragments/scripts :: auth-scripts"></div>
 </body>
 </html>
