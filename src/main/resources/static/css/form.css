@@ -1,0 +1,552 @@
+/* form.css - Versione semplificata */
+/* NOTA: I stili dell'header sono ora in header.css */
+
+/* Main Content */
+.main-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+/* Form Container */
+.form-container {
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--color-shadow-light) 0px 4px 12px;
+}
+
+.form-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-text-light);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-md);
+    transition: color var(--transition-fast);
+}
+
+.back-btn:hover {
+    color: var(--color-primary);
+}
+
+.form-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0;
+}
+
+/* Note Form */
+.note-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.form-group label {
+    font-weight: 500;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    transition: border-color var(--transition-fast);
+    resize: vertical;
+    background-color: var(--color-bg);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.1);
+}
+
+.form-group select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%239b9b9b" d="m0 1 2 2 2-2z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    padding-right: 40px;
+}
+
+.form-group select:focus {
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%232383e2" d="m0 1 2 2 2-2z"/></svg>');
+}
+
+.form-group textarea {
+    min-height: 120px;
+    line-height: 1.5;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-lighter);
+    margin-top: var(--spacing-xs);
+}
+
+/* Sharing Section */
+.sharing-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-tertiary);
+}
+
+.sharing-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.sharing-input-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: flex-end;
+}
+
+.sharing-input-group input {
+    flex: 1;
+    margin: 0;
+}
+
+.sharing-input-group select {
+    min-width: 120px;
+    margin: 0;
+}
+
+.sharing-input-group .btn {
+    white-space: nowrap;
+}
+
+/* Shared Users List */
+.shared-users {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.shared-user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    gap: var(--spacing-md);
+}
+
+.shared-user-item:hover {
+    border-color: var(--color-border-hover);
+    box-shadow: var(--color-shadow-light) 0px 2px 4px;
+}
+
+.shared-user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.shared-user-email {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text);
+    flex: 1;
+}
+
+.shared-user-role-container {
+    display: flex;
+    align-items: center;
+    min-width: 120px;
+}
+
+.permission-select-inline {
+    border: none;
+    background: transparent;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-primary);
+    cursor: pointer;
+    appearance: none;
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.permission-select-inline:hover {
+    background-color: var(--color-primary-light);
+}
+
+.permission-select-inline:focus {
+    outline: 2px solid var(--color-primary);
+    background-color: var(--color-primary-light);
+}
+
+.permission-readonly {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-primary);
+    padding: var(--spacing-xs);
+}
+
+.shared-user-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+}
+
+.empty-sharing {
+    text-align: center;
+    color: var(--color-text-lighter);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-lg);
+    font-style: italic;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+.form-actions .btn {
+    min-width: 120px;
+}
+
+/* Focus states for accessibility */
+.form-group input:focus-visible,
+.form-group textarea:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-content {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+    
+    .form-container {
+        padding: var(--spacing-lg);
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        min-width: auto;
+    }
+    
+    .sharing-input-group {
+        flex-direction: column;
+    }
+    
+    .sharing-input-group .btn {
+        align-self: flex-end;
+    }
+    
+    .shared-user-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .shared-user-info {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+    
+    .shared-user-role-container {
+        min-width: auto;
+    }
+    
+    .shared-user-actions {
+        align-self: flex-end;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.shared-user-item {
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* Sezione Cartella */
+.folder-section {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* spazio tra dropdown e bottone */
+    margin-top: 5px;
+}
+
+#note-folder-select {
+    flex: 1; /* occuperà tutto lo spazio disponibile */
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+#create-folder-btn {
+    padding: 8px 14px;
+    border-radius: 5px;
+    border: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#create-folder-btn:hover {
+    background-color: #e0e0e0;
+}
+
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 10px;
+    width: 320px;
+    max-width: 90%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+
+/* Notes Controls */
+.notes-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap; /* Adatta su schermi piccoli */
+}
+
+/* Toggle View Button */
+#toggle-view-btn {
+    padding: 0.5rem 1rem;
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+#toggle-view-btn:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+}
+
+/* Folder Select */
+#note-folder-select {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+#note-folder-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(35, 131, 226, 0.1);
+}
+
+/* Icona freccia custom per select */
+#note-folder-select::-ms-expand {
+    display: none; /* Nasconde freccia IE */
+}
+#note-folder-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='7' viewBox='0 0 10 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 6L9 1' stroke='%23666' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.65rem auto;
+    padding-right: 2rem; /* Spazio per freccia */
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .notes-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+}
+
+
+/* Contenitore delle cartelle */
+.folder-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.folder-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Header della cartella */
+.folder-header {
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+    color: var(--color-text);
+    margin-bottom: 0.5rem;
+}
+
+/* Griglia delle note */
+.folder-notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20px, 1fr));
+    gap: 0.25rem;
+    padding: 0.5rem;
+    background-color: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    transition: max-height 0.3s ease;
+}
+
+/* Piccoli quadrati per le note */
+.folder-notes .note-item {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* quadrato perfetto */
+    background-color: var(--color-primary-light);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.folder-notes .note-item:hover {
+    background-color: var(--color-primary);
+}
+
+/* Label opzionale al passaggio del mouse */
+.folder-notes .note-item::after {
+    content: attr(data-title);
+    position: absolute;
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    padding: 0.25rem 0.5rem;
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.folder-notes .note-item:hover::after {
+    opacity: 1;
+}
+
+/* Collassamento / espansione */
+.folder-notes.collapsed {
+    max-height: 0;
+    overflow: hidden;
+}
+
+.folder-notes.expanded {
+    max-height: 500px; /* oppure auto se vuoi */
+}

@@ -1,20 +1,16 @@
 package com.sweng.nota_bene.controller;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.sweng.nota_bene.dto.CreateNoteRequest;
 import com.sweng.nota_bene.dto.NoteListResponse;
@@ -41,7 +37,7 @@ public class NoteController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserResponse) {
             UserResponse user = (UserResponse) authentication.getPrincipal();
-            return user.email(); // Ora usiamo l'email invece del nickname
+            return user.email();
         }
         throw new IllegalStateException("Utente non autenticato");
     }
@@ -100,14 +96,66 @@ public class NoteController {
         }
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> searchNotes(
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime createdTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime modifiedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) OffsetDateTime modifiedTo) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            // normalizza stringhe vuote -> null
+            searchTerm = (searchTerm != null && !searchTerm.isBlank()) ? searchTerm.trim() : null;
+            tag        = (tag != null && !tag.isBlank()) ? tag.trim() : null;
+            List<NoteListResponse> note = noteService.searchNotes(
+                    proprietarioEmail,
+                    searchTerm,
+                    tag,
+                    createdFrom,
+                    createdTo,
+                    modifiedFrom,
+                    modifiedTo
+            );
+
+            return ResponseEntity.ok(Map.of("success", true, "note", note));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getNotaById(@PathVariable UUID id) {
         try {
             String proprietarioEmail = getAuthenticatedUserEmail();
             NoteResponse nota = noteService.getNotaById(id, proprietarioEmail);
+            
+            // Il frontend si aspetta la nota direttamente, non wrapped in un oggetto
+            return ResponseEntity.ok(nota);
+            
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Errore interno del server"
+            ));
+        }
+    }
+
+    @PostMapping("/{id}/copy")
+    public ResponseEntity<?> copyNote(@PathVariable UUID id) {
+        try {
+            String proprietarioEmail = getAuthenticatedUserEmail();
+            NoteResponse nota = noteService.copyNote(id, proprietarioEmail);
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "nota", nota
+                    "nota", nota,
+                    "message", "Nota copiata con successo"
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(

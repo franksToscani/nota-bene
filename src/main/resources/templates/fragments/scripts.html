@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- Script Fragment -->
+    <script th:fragment="auth-scripts">
+        // ===== FUNZIONI DI AUTENTICAZIONE COMUNI =====
+        /**
+         * Gestisce il submit di un form di autenticazione (login/register)
+         */
+        async function handleAuthFormSubmit(event, endpoint, successMessage) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitButton = form.querySelector('button[type="submit"]');
+            const buttonText = submitButton.querySelector('.btn-text');
+            const buttonLoader = submitButton.querySelector('.btn-loader');
+            
+            // Disabilita il form durante il submit
+            submitButton.disabled = true;
+            buttonText.style.display = 'none';
+            buttonLoader.style.display = 'block';
+
+            try {
+                const formData = new FormData(form);
+                const authData = Object.fromEntries(formData.entries());
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(authData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showNotification(successMessage, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/home';
+                    }, 1000);
+                } else {
+                    showNotification(data.message || 'Errore durante l\'operazione', 'error');
+                }
+
+            } catch (error) {
+                console.error('Errore:', error);
+                showNotification('Errore di connessione', 'error');
+            } finally {
+                submitButton.disabled = false;
+                buttonText.style.display = 'inline';
+                buttonLoader.style.display = 'none';
+            }
+        }
+
+        /**
+         * Verifica se l'utente è già autenticato e reindirizza alla home
+         */
+        async function redirectIfAuthenticated() {
+            try {
+                const authData = await checkAuthentication();
+                if (authData.authenticated) {
+                    window.location.href = '/home';
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Errore nel controllo autenticazione:', error);
+                return false;
+            }
+        }
+        /**
+         * Verifica autenticazione tramite server
+         */
+        async function checkAuthentication() {
+            try {
+                const response = await fetch('/api/auth/check', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return data;
+                }
+                return { authenticated: false };
+            } catch (error) {
+                console.error('Errore durante il controllo autenticazione:', error);
+                return { authenticated: false };
+            }
+        }
+
+        /**
+         * Genera le iniziali dal nickname
+         */
+        function getInitials(name) {
+            const parts = name.trim().split(/\s+/);
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        /**
+         * Configura il pulsante di logout
+         */
+        function setupLogout() {
+            const logoutBtn = document.getElementById('logout-btn');
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    
+                    try {
+                        logoutBtn.disabled = true;
+                        logoutBtn.textContent = 'Disconnessione...';
+                        
+                        await fetch('/api/auth/logout', {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                    } catch (error) {
+                        console.error('Errore durante il logout:', error);
+                    } finally {
+                        window.location.href = '/';
+                    }
+                });
+            }
+        }
+
+        /**
+         * Popola le informazioni utente nell'header
+         */
+        function populateUserInfo(user) {
+            const nameEl = document.getElementById('user-name');
+            const avatarEl = document.getElementById('user-avatar');
+
+            if (nameEl) nameEl.textContent = user.nickname;
+            if (avatarEl) avatarEl.textContent = getInitials(user.nickname);
+        }
+
+        /**
+         * Inizializzazione base dell'header (autenticazione + user info + logout)
+         */
+        async function initHeader() {
+            const authData = await checkAuthentication();
+            
+            if (authData.authenticated && authData.user) {
+                populateUserInfo(authData.user);
+            }
+
+            setupLogout();
+            return authData;
+        }
+
+        // ===== FUNZIONI DI NOTIFICA COMUNI =====
+        
+        /**
+         * Mostra notifica
+         */
+        function showNotification(message, type = 'info') {
+            // Rimuovi eventuali notifiche precedenti
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notif => notif.remove());
+
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideInRight 0.3s ease;
+                max-width: 300px;
+            `;
+
+            // Aggiungi gli stili per i colori se non esistono già
+            if (!document.head.querySelector('style[data-notifications]')) {
+                const style = document.createElement('style');
+                style.setAttribute('data-notifications', '');
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from {
+                            transform: translateX(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                    .notification-success { background-color: #16a34a; }
+                    .notification-error { background-color: #dc2626; }
+                    .notification-info { background-color: #2563eb; }
+                `;
+                document.head.appendChild(style);
+            }
+
+            if (type === 'success') {
+                notification.style.backgroundColor = '#16a34a';
+            } else if (type === 'error') {
+                notification.style.backgroundColor = '#dc2626';
+            } else {
+                notification.style.backgroundColor = '#2563eb';
+            }
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // ===== UTILITY COMUNI =====
+        
+        /**
+         * Utility: escape HTML
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Utility: formatta una data
+         */
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Ora';
+            if (diffMins < 60) return `${diffMins} min fa`;
+            if (diffHours < 24) return `${diffHours} ore fa`;
+            if (diffDays < 7) return `${diffDays} giorni fa`;
+            
+            return date.toLocaleDateString('it-IT');
+        }
+
+        /**
+         * Utility: tronca il testo
+         */
+        function truncateContent(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength).trim() + '...';
+        }
+
+        // Inizializza l'header automaticamente quando il DOM è pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHeader);
+        } else {
+            initHeader();
+        }
+    </script>
+</body>
+</html>
