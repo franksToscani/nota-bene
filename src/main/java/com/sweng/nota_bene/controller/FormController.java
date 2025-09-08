@@ -16,18 +16,12 @@ public class FormController {
     
     @Autowired
     private TagService tagService;
-    
-    /**
-     * Serve la pagina del form
-     */
+
     @GetMapping("/form")
     public String formPage() {
-        return "form"; // Restituisce form.html dalla cartella templates
+        return "form"; 
     }
-    
-    /**
-     * API per recuperare tutti i tag disponibili
-     */
+
     @GetMapping("/api/tag")
     @ResponseBody
     public ResponseEntity<List<TagResponse>> getAllTags() {

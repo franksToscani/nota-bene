@@ -90,16 +90,13 @@ public class AuthController {
      * Autentica l'utente nella sessione di Spring Security
      */
     private void authenticateUser(UserResponse user, HttpServletRequest request) {
-        // Crea il token di autenticazione
         UsernamePasswordAuthenticationToken authToken = 
             new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
         
-        // Imposta l'autenticazione nel SecurityContext
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authToken);
         SecurityContextHolder.setContext(securityContext);
         
-        // Salva il SecurityContext nella sessione HTTP
         HttpSession session = request.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
     }

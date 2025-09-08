@@ -30,12 +30,10 @@ public class Condivisione {
     @Column(nullable = false)
     private TipoCondivisione tipo;
 
-    // Relazione con Note (opzionale per query più efficienti)
     @ManyToOne
     @JoinColumn(name = "id_nota", insertable = false, updatable = false)
     private Note nota;
 
-    // Constructors
     public Condivisione() {}
 
     public Condivisione(UUID idNota, String emailUtente, TipoCondivisione tipo) {
@@ -58,7 +56,6 @@ public class Condivisione {
     public void setTipo(TipoCondivisione tipo) { this.tipo = tipo; }
     public void setNota(Note nota) { this.nota = nota; }
 
-    // Enum per i tipi di condivisione
     public enum TipoCondivisione {
         lettura, scrittura
     }

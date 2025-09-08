@@ -14,37 +14,19 @@ import com.sweng.nota_bene.model.Condivisione;
 
 @Repository
 public interface CondivisioneRepository extends JpaRepository<Condivisione, UUID> {
-    
-    /**
-     * Trova tutte le condivisioni per una specifica nota
-     */
+
     List<Condivisione> findByIdNota(UUID idNota);
     
-    /**
-     * Trova una specifica condivisione per nota e utente
-     */
     Optional<Condivisione> findByIdNotaAndEmailUtente(UUID idNota, String emailUtente);
-    
-    /**
-     * Trova tutte le note condivise con un utente (per vedere le note accessibili)
-     */
+
     List<Condivisione> findByEmailUtente(String emailUtente);
-    
-    /**
-     * Elimina tutte le condivisioni per una specifica nota
-     */
+
     @Modifying
     void deleteByIdNota(UUID idNota);
-    
-    /**
-     * Elimina una specifica condivisione
-     */
+
     @Modifying
     void deleteByIdNotaAndEmailUtente(UUID idNota, String emailUtente);
-    
-    /**
-     * Controlla se un utente ha accesso a una nota (qualsiasi tipo di permesso)
-     */
+
     boolean existsByIdNotaAndEmailUtente(UUID idNota, String emailUtente);
     
     /**

@@ -47,7 +47,7 @@ public class NoteService {
             }
         }
 
-        // Gestione della cartella (opzionale)
+        // Gestione della cartella
         if (request.idCartella() != null) {
             note.setIdCartella(request.idCartella());
         }

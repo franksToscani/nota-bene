@@ -1,14 +1,14 @@
 package com.sweng.nota_bene.model;
 
+import java.util.UUID;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.util.UUID;
-
 @Entity
-@Table(name = "cartella") // assicurati che il nome corrisponda esattamente alla tabella su Supabase
+@Table(name = "cartella") 
 public class Cartella {
 
     @Id
@@ -20,7 +20,6 @@ public class Cartella {
     private String creatore;
     private String proprietario;
 
-    // Getter e Setter
     public UUID getId() {
         return id;
     }

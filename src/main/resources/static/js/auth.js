@@ -5,10 +5,8 @@
     if (!isAuthPage) return;
 
     async function initAuthPage() {
-        // Reindirizza se già autenticato
         if (await redirectIfAuthenticated()) return;
 
-        // Configura i form
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
 
@@ -25,7 +23,6 @@
         }
     }
 
-    // Inizializza
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAuthPage);
     } else {

@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
 </head>
 <body>
-    <!-- Script Fragment -->
     <script th:fragment="auth-scripts">
         // ===== FUNZIONI DI AUTENTICAZIONE COMUNI =====
-        /**
-         * Gestisce il submit di un form di autenticazione (login/register)
-         */
+
         async function handleAuthFormSubmit(event, endpoint, successMessage) {
             event.preventDefault();
             
@@ -18,7 +15,6 @@
             const buttonText = submitButton.querySelector('.btn-text');
             const buttonLoader = submitButton.querySelector('.btn-loader');
             
-            // Disabilita il form durante il submit
             submitButton.disabled = true;
             buttonText.style.display = 'none';
             buttonLoader.style.display = 'block';
@@ -58,9 +54,6 @@
             }
         }
 
-        /**
-         * Verifica se l'utente è già autenticato e reindirizza alla home
-         */
         async function redirectIfAuthenticated() {
             try {
                 const authData = await checkAuthentication();
@@ -74,9 +67,7 @@
                 return false;
             }
         }
-        /**
-         * Verifica autenticazione tramite server
-         */
+
         async function checkAuthentication() {
             try {
                 const response = await fetch('/api/auth/check', {
@@ -98,18 +89,12 @@
             }
         }
 
-        /**
-         * Genera le iniziali dal nickname
-         */
         function getInitials(name) {
             const parts = name.trim().split(/\s+/);
             if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
             return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
 
-        /**
-         * Configura il pulsante di logout
-         */
         function setupLogout() {
             const logoutBtn = document.getElementById('logout-btn');
             
@@ -139,9 +124,6 @@
             }
         }
 
-        /**
-         * Popola le informazioni utente nell'header
-         */
         function populateUserInfo(user) {
             const nameEl = document.getElementById('user-name');
             const avatarEl = document.getElementById('user-avatar');
@@ -150,9 +132,6 @@
             if (avatarEl) avatarEl.textContent = getInitials(user.nickname);
         }
 
-        /**
-         * Inizializzazione base dell'header (autenticazione + user info + logout)
-         */
         async function initHeader() {
             const authData = await checkAuthentication();
             
@@ -165,12 +144,8 @@
         }
 
         // ===== FUNZIONI DI NOTIFICA COMUNI =====
-        
-        /**
-         * Mostra notifica
-         */
+
         function showNotification(message, type = 'info') {
-            // Rimuovi eventuali notifiche precedenti
             const existingNotifications = document.querySelectorAll('.notification');
             existingNotifications.forEach(notif => notif.remove());
 
@@ -191,7 +166,6 @@
                 max-width: 300px;
             `;
 
-            // Aggiungi gli stili per i colori se non esistono già
             if (!document.head.querySelector('style[data-notifications]')) {
                 const style = document.createElement('style');
                 style.setAttribute('data-notifications', '');
@@ -229,19 +203,13 @@
         }
 
         // ===== UTILITY COMUNI =====
-        
-        /**
-         * Utility: escape HTML
-         */
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        /**
-         * Utility: formatta una data
-         */
         function formatDate(dateString) {
             const date = new Date(dateString);
             const now = new Date();
@@ -258,9 +226,6 @@
             return date.toLocaleDateString('it-IT');
         }
 
-        /**
-         * Utility: tronca il testo
-         */
         function truncateContent(text, maxLength) {
             if (text.length <= maxLength) return text;
             return text.substring(0, maxLength).trim() + '...';
