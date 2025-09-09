@@ -1,33 +1,23 @@
-// form.js - Versione semplificata con funzioni comuni rimosse
 (function () {
     'use strict';
 
-    // Verifica se siamo sulla pagina form
     const isFormPage = window.location.pathname === '/form';
 
     if (!isFormPage) {
         return;
     }
 
-    /**
-     * Inizializzazione della pagina form
-     */
     async function initFormPage() {
-        // Guard: verifica se l'utente è autenticato
-        const authData = await checkAuthentication(); // Usa la funzione comune!
+        const authData = await checkAuthentication(); 
         
         if (!authData.authenticated) {
             console.log('Utente non autenticato, reindirizzamento al login...');
             window.location.href = '/';
             return;
         }
-
-        // L'header è già stato popolato dagli script comuni!
-        // Inizializza solo il gestore del form
         new NoteFormHandler();
     }
 
-    // Inizializza quando il DOM è pronto
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initFormPage);
     } else {
@@ -36,9 +26,6 @@
 
 })();
 
-/**
- * Gestore del form per le note con gestione permessi
- */
 class NoteFormHandler {
     constructor() {
         this.form = document.getElementById('note-form');
@@ -50,8 +37,7 @@ class NoteFormHandler {
         this.cancelBtn = document.getElementById('cancel-btn');
         this.backBtn = document.getElementById('back-btn');
         this.formTitle = document.getElementById('form-title');
-        
-        // Elementi per la condivisione
+
         this.shareEmailInput = document.getElementById('share-email-input');
         this.permissionSelect = document.getElementById('permission-select');
         this.addShareBtn = document.getElementById('add-share-btn');
@@ -70,14 +56,12 @@ class NoteFormHandler {
     }
 
     init() {
-        // Setup contatore caratteri
         if (this.contentInput && this.charCount) {
             this.contentInput.addEventListener('input', () => {
                 this.updateCharCount();
             });
         }
 
-        // Submit form
         if (this.form) {
             this.form.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -85,14 +69,12 @@ class NoteFormHandler {
             });
         }
 
-        // Pulsante annulla
         if (this.cancelBtn) {
             this.cancelBtn.addEventListener('click', () => {
                 this.goBack();
             });
         }
 
-        // Pulsante back
         if (this.backBtn) {
             this.backBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -100,14 +82,12 @@ class NoteFormHandler {
             });
         }
 
-        // Gestione condivisione
         if (this.addShareBtn) {
             this.addShareBtn.addEventListener('click', () => {
                 this.addSharedUser();
             });
         }
 
-        // Permettere di aggiungere un utente premendo Invio
         if (this.shareEmailInput) {
             this.shareEmailInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -121,9 +101,6 @@ class NoteFormHandler {
         this.updateSharedUsersList();
     }
 
-    /**
-     * Carica tutti i tag disponibili
-     */
     async loadTags() {
         try {
             const response = await fetch('/api/tag', {
@@ -148,9 +125,6 @@ class NoteFormHandler {
         }
     }
 
-    /**
-     * Popola il select con i tag disponibili
-     */
     populateTagSelect() {
         if (!this.tagSelect) return;
 
@@ -168,9 +142,6 @@ class NoteFormHandler {
         });
     }
 
-    /**
-     * Gestisce errori nel caricamento dei tag
-     */
     handleTagLoadError() {
         if (!this.tagSelect) return;
         
@@ -182,9 +153,6 @@ class NoteFormHandler {
         this.tagSelect.appendChild(errorOption);
     }
 
-    /**
-     * Controlla i parametri URL per determinare se stiamo modificando una nota esistente
-     */
     checkUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
         const noteId = urlParams.get('id');
@@ -199,9 +167,6 @@ class NoteFormHandler {
         }
     }
 
-    /**
-     * Configura il form per la creazione di una nuova nota
-     */
     setupForCreate() {
         if (this.formTitle) {
             this.formTitle.textContent = 'Nuova Nota';
@@ -215,9 +180,6 @@ class NoteFormHandler {
         }
     }
 
-    /**
-     * Carica una nota esistente per la modifica
-     */
     async loadNoteForEdit(noteId) {
         try {
             const response = await fetch(`/api/note/${noteId}`, {
@@ -268,21 +230,18 @@ class NoteFormHandler {
                 }
             } else if (response.status === 400) {
                 const errorData = await response.json();
-                showNotification(errorData.message || 'Non hai i permessi per accedere a questa nota', 'error'); // Usa la funzione comune!
+                showNotification(errorData.message || 'Non hai i permessi per accedere a questa nota', 'error');
                 this.goBack();
             } else {
-                showNotification('Errore nel caricamento della nota', 'error'); // Usa la funzione comune!
+                showNotification('Errore nel caricamento della nota', 'error');
                 this.goBack();
             }
         } catch (error) {
-            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
+            showNotification('Errore di connessione', 'error'); 
             this.goBack();
         }
     }
 
-    /**
-     * Aggiorna la visibilità della sezione condivisioni
-     */
     updateSharingSection() {
         const sharingSection = document.querySelector('.sharing-section');
         if (!sharingSection) return;
@@ -294,9 +253,6 @@ class NoteFormHandler {
         }
     }
 
-    /**
-     * Aggiorna il contatore dei caratteri
-     */
     updateCharCount() {
         if (!this.contentInput || !this.charCount) return;
         
@@ -312,69 +268,57 @@ class NoteFormHandler {
         }
     }
 
-    /**
-     * Aggiunge un utente alla lista di condivisione
-     */
     addSharedUser() {
         const email = this.shareEmailInput.value.trim();
         const permission = this.permissionSelect.value;
 
         if (!email) {
-            showNotification('Inserire un indirizzo email', 'error'); // Usa la funzione comune!
+            showNotification('Inserire un indirizzo email', 'error'); 
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            showNotification('Inserire un indirizzo email valido', 'error'); // Usa la funzione comune!
+            showNotification('Inserire un indirizzo email valido', 'error'); 
             return;
         }
 
         if (email === this.currentUserEmail) {
-            showNotification('Non puoi condividere la nota con te stesso', 'error'); // Usa la funzione comune!
+            showNotification('Non puoi condividere la nota con te stesso', 'error'); 
             return;
         }
 
         const existingUser = this.sharedUsers.find(user => user.emailUtente === email);
         if (existingUser) {
             existingUser.tipo = permission;
-            showNotification('Permessi aggiornati per questo utente', 'info'); // Usa la funzione comune!
+            showNotification('Permessi aggiornati per questo utente', 'info'); 
         } else {
             this.sharedUsers.push({
                 emailUtente: email,
                 tipo: permission
             });
-            showNotification('Utente aggiunto alla condivisione', 'success'); // Usa la funzione comune!
+            showNotification('Utente aggiunto alla condivisione', 'success'); 
         }
 
         this.shareEmailInput.value = '';
         this.updateSharedUsersList();
     }
 
-    /**
-     * Rimuove un utente dalla lista di condivisione
-     */
     removeSharedUser(email) {
         this.sharedUsers = this.sharedUsers.filter(user => user.emailUtente !== email);
         this.updateSharedUsersList();
-        showNotification('Utente rimosso dalla condivisione', 'info'); // Usa la funzione comune!
+        showNotification('Utente rimosso dalla condivisione', 'info'); 
     }
 
-    /**
-     * Cambia il permesso di un utente
-     */
     changeUserPermission(email, newPermission) {
         const user = this.sharedUsers.find(user => user.emailUtente === email);
         if (user) {
             user.tipo = newPermission;
             this.updateSharedUsersList();
-            showNotification('Permessi aggiornati', 'success'); // Usa la funzione comune!
+            showNotification('Permessi aggiornati', 'success');
         }
     }
 
-    /**
-     * Aggiorna la visualizzazione della lista degli utenti condivisi
-     */
     updateSharedUsersList() {
         if (!this.sharedUsersList) return;
 
@@ -454,16 +398,10 @@ class NoteFormHandler {
         return item;
     }
 
-    /**
-     * Salva la nota (crea o modifica) con le condivisiones
-     */
-
 async saveNote() {
     const titolo = this.titleInput.value.trim();
     const contenuto = this.contentInput.value.trim();
     const tagId = this.tagSelect.value || null;
-
-    // Recupera l'id della cartella selezionata (UUID come stringa o null)
     const folderSelect = document.getElementById('note-folder-select');
     const idCartella = folderSelect?.value || null;
 
@@ -481,15 +419,13 @@ async saveNote() {
         this.saveBtn.disabled = true;
         this.saveBtn.textContent = 'Salvataggio...';
 
-        // Prepara il body della richiesta
         const requestBody = { 
             titolo, 
             contenuto,
             tagId,
-            idCartella // UUID stringa o null
+            idCartella 
         };
 
-        // Solo il proprietario o in creazione può inviare le condivisioni
         if (this.mode === 'create' || this.isOwner) {
             requestBody.condivisioni = this.sharedUsers.length > 0 ? this.sharedUsers : null;
         }
@@ -538,12 +474,6 @@ async saveNote() {
     }
 }
 
-
-
-
-    /**
-     * Torna alla pagina home
-     */
     goBack() {
         window.location.href = '/home';
     }

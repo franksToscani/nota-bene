@@ -22,10 +22,10 @@ public class Note {
     private UUID id;
 
     @Column(nullable = true)
-    private String titolo; // Titolo della nota
+    private String titolo; 
 
     @Column(nullable = true, length = 280)
-    private String contenuto; // Contenuto massimo 280 caratteri
+    private String contenuto; 
 
     @Column(nullable = false)
     private String proprietario; // Email del proprietario
@@ -37,28 +37,23 @@ public class Note {
     private OffsetDateTime dataUltimaModifica;
 
     @Column(name = "id_cartella", nullable = true)
-    private UUID idCartella; // UUID della cartella associata (può essere null)
+    private UUID idCartella; 
 
     @Column(nullable = true)
-    private String tag; // Nome del tag associato alla nota
+    private String tag; 
 
-    // Imposta le date di creazione e ultima modifica al momento della persistenza
     @PrePersist
     protected void onCreate() {
         dataCreazione = OffsetDateTime.now(ZoneOffset.UTC);
         dataUltimaModifica = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
-    // Aggiorna la data di ultima modifica ad ogni update
     @PreUpdate
     protected void onUpdate() {
         dataUltimaModifica = OffsetDateTime.now(ZoneOffset.UTC);
 
     }
 
-    // =======================
-    // Getters
-    // =======================
     public UUID getId() { return id; }
     public String getTitolo() { return titolo; }
     public String getContenuto() { return contenuto; }
@@ -68,9 +63,6 @@ public class Note {
     public UUID getIdCartella() { return idCartella; }
     public String getTag() { return tag; }
 
-    // =======================
-    // Setters
-    // =======================
     public void setId(UUID id) { this.id = id; }
     public void setTitolo(String titolo) { this.titolo = titolo; }
     public void setContenuto(String contenuto) { this.contenuto = contenuto; }

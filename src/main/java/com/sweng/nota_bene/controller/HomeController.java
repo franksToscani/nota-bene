@@ -8,11 +8,11 @@ public class HomeController {
 
     @GetMapping("/")
     public String auth() {
-        return "auth"; // templates/auth.html
+        return "auth"; 
     }
 
     @GetMapping("/home")
     public String home() {
-        return "home"; // templates/home.html
+        return "home"; 
     }
 }

@@ -1,18 +1,14 @@
-// home.js - Versione semplificata con funzioni comuni rimosse
 (function () {
     'use strict';
 
-    // Verifica se siamo sulla pagina home
     const isHomePage = window.location.pathname === '/home';
 
     if (!isHomePage) {
         return;
     }
-    /**
-     * Inizializzazione della pagina home
-     */
+
     async function initHomePage() {
-        // Guard: verifica se l'utente è autenticato
+
         const authData = await checkAuthentication();
         
         if (!authData.authenticated) {
@@ -20,7 +16,7 @@
             window.location.href = '/';
             return;
         }
-        // L'header è già stato popolato dagli script comuni!
+        // L'header è già stato popolato dagli script comuni
         // Inizializza solo il gestore delle note
         new NotePageHandler();
     }
@@ -34,9 +30,6 @@
 
 })();
 
-/**
- * Gestore delle note - Versione semplificata
- */
 class NotePageHandler {
     constructor() {
         this.notesContainer = document.getElementById('notes-container');
@@ -112,9 +105,7 @@ class NotePageHandler {
             this.resetFiltersBtn.addEventListener('click', () => this.resetFilters());
         }
     }
-    /**
-     * Carica l'email dell'utente corrente
-     */
+
     async loadCurrentUser() {
         try {
             const response = await fetch('/api/auth/check', {
@@ -131,9 +122,7 @@ class NotePageHandler {
             console.error('Errore nel caricamento utente corrente:', error);
         }
     }
-    /**
-     * Filtra le note in base al termine di ricerca
-     */
+
     filterNotes(searchTerm) {
         if (!searchTerm) {
             this.filteredNotes = [...this.notes];
@@ -150,9 +139,7 @@ class NotePageHandler {
         }
         this.renderNotes();
     }
-    /**
-     * Toggle espansione della nota
-     */
+
     toggleNoteExpansion(noteCard) {
         const expandedCards = this.notesContainer.querySelectorAll('.note-card.expanded');
         expandedCards.forEach(card => {
@@ -163,9 +150,6 @@ class NotePageHandler {
         noteCard.classList.toggle('expanded');
     }
 
-    /**
-     * Gestisce l'apertura/chiusura del dropdown
-     */
     toggleDropdown(menuBtn, noteId) {
         if (this.activeDropdown) {
             this.closeDropdown();
@@ -192,9 +176,6 @@ class NotePageHandler {
         this.activeDropdown = dropdown;
     }
 
-    /**
-     * Chiude il dropdown attivo
-     */
     closeDropdown() {
         if (this.activeDropdown) {
             this.activeDropdown.classList.remove('show');
@@ -210,6 +191,7 @@ class NotePageHandler {
     async applyFilters() {
         this.toolbar.classList.add('filters-active');
         const params = new URLSearchParams();
+
         /**Normalizzazione delle date prima di pasarle alla ricerca**/
         const normalizeDate = (dateStr) => /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
             ? `${dateStr}T00:00:00Z`
@@ -262,9 +244,7 @@ class NotePageHandler {
         await this.loadNotes();
         this.filterNotes('');
     }
-    /**
-     * Carica tutte le note dal server
-     */
+
     async loadNotes() {
         try {
             const response = await fetch('/api/note', {
@@ -290,9 +270,6 @@ class NotePageHandler {
         }
     }
 
-    /**
-     * Renderizza le note nell'interfaccia
-     */
     renderNotes() {
         if (!this.notesContainer) return;
 
@@ -317,23 +294,20 @@ class NotePageHandler {
         });
     }
 
-    /**
-     * Crea un elemento HTML per una nota
-     */
     createNoteCard(note) {
         const noteCard = document.createElement('div');
         noteCard.className = 'note-card';
         noteCard.dataset.noteId = note.id;
         noteCard.dataset.fullContent = note.contenuto;
 
-        const formattedDate = formatDate(note.dataUltimaModifica); // Usa la funzione comune!
-        const truncatedContent = truncateContent(note.contenuto, 150); // Usa la funzione comune!
+        const formattedDate = formatDate(note.dataUltimaModifica); 
+        const truncatedContent = truncateContent(note.contenuto, 150); 
         
-        const tagHtml = note.tag ? `<div class="note-tag">${escapeHtml(note.tag)}</div>` : ''; // Usa la funzione comune!
+        const tagHtml = note.tag ? `<div class="note-tag">${escapeHtml(note.tag)}</div>` : ''; 
 
         const isShared = this.currentUserEmail && note.proprietario !== this.currentUserEmail;
         const sharedIndicator = isShared ? `<div class="note-shared-indicator">
-            Condivisa da ${escapeHtml(note.proprietario)}</div>` : ''; // Usa la funzione comune!
+            Condivisa da ${escapeHtml(note.proprietario)}</div>` : ''; 
 
         noteCard.innerHTML = `
             <div class="note-header">
@@ -359,16 +333,10 @@ class NotePageHandler {
         return noteCard;
     }
 
-    /**
-     * Naviga alla pagina di modifica nota
-     */
     editNote(noteId) {
         window.location.href = `/form?id=${noteId}`;
     }
 
-    /**
-     * Elimina una nota
-     */
     async deleteNote(noteId) {
         try {
             const response = await fetch(`/api/note/${noteId}`, {
@@ -380,21 +348,18 @@ class NotePageHandler {
             });
 
             if (response.ok) {
-                showNotification('Nota eliminata con successo!', 'success'); // Usa la funzione comune!
+                showNotification('Nota eliminata con successo!', 'success');
                 await this.loadNotes();
             } else {
                 const errorData = await response.json();
-                showNotification(errorData.message || 'Errore nell\'eliminazione della nota', 'error'); // Usa la funzione comune!
+                showNotification(errorData.message || 'Errore nell\'eliminazione della nota', 'error');
             }
 
         } catch (error) {
-            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
+            showNotification('Errore di connessione', 'error');
         }
     }
 
-    /**
-     * Duplica una nota
-     */
     async copyNote(noteId) {
         try {
             const response = await fetch(`/api/note/${noteId}/copy`, {
@@ -406,29 +371,23 @@ class NotePageHandler {
             });
 
             if (response.ok) {
-                showNotification('Nota duplicata con successo!', 'success'); // Usa la funzione comune!
+                showNotification('Nota duplicata con successo!', 'success'); 
                 await this.loadNotes();
             } else {
                 const errorData = await response.json();
-                showNotification(errorData.message || 'Errore nella duplicazione della nota', 'error'); // Usa la funzione comune!
+                showNotification(errorData.message || 'Errore nella duplicazione della nota', 'error'); 
             }
 
         } catch (error) {
-            showNotification('Errore di connessione', 'error'); // Usa la funzione comune!
+            showNotification('Errore di connessione', 'error'); 
         }
     }
 
-    /**
-     * Mostra lo stato vuoto
-     */
     showEmptyState() {
         if (this.emptyState) this.emptyState.style.display = 'block';
         if (this.notesContainer) this.notesContainer.style.display = 'none';
     }
 
-    /**
-     * Nasconde lo stato vuoto
-     */
     hideEmptyState() {
         if (this.emptyState) this.emptyState.style.display = 'none';
         if (this.notesContainer) this.notesContainer.style.display = 'grid';

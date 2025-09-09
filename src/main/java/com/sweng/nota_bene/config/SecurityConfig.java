@@ -21,17 +21,17 @@ public class SecurityConfig {
                     "/css/**",
                     "/js/**", 
                     "/images/**",
-                    "/home",  // Permetti accesso alla pagina home (il JS gestirà l'autenticazione)
-                    "/form"   // Permetti accesso alla pagina form (il JS gestirà l'autenticazione)
+                    "/home",  
+                    "/form"  
                 ).permitAll()
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/check").permitAll() // Endpoint per verificare autenticazione
-                .requestMatchers("/api/**").authenticated() // Solo le API richiedono autenticazione
+                .requestMatchers("/api/auth/check").permitAll() 
+                .requestMatchers("/api/**").authenticated() 
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form.disable()) // Disabilitiamo il form login di default
+            .formLogin(form -> form.disable()) 
             .logout(logout -> logout
-                .logoutUrl("/api/auth/logout") // Usa logoutUrl invece di AntPathRequestMatcher
+                .logoutUrl("/api/auth/logout") 
                 .logoutSuccessHandler(customLogoutSuccessHandler())
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")

@@ -47,7 +47,7 @@ public class NoteService {
             }
         }
 
-        // Gestione della cartella (opzionale)
+        // Gestione della cartella
         if (request.idCartella() != null) {
             note.setIdCartella(request.idCartella());
         }
@@ -106,6 +106,7 @@ public class NoteService {
                 .map(this::mapToNoteListResponse)
                 .collect(Collectors.toList());
     }
+
     public NoteResponse getNotaById(UUID id, String proprietarioEmail) {
         Note note = noteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Nota non trovata"));

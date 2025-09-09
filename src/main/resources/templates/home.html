@@ -10,16 +10,15 @@
     <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body>
-<!-- Header -->
+
 <div th:replace="~{fragments/header :: main-header}"></div>
 
 <main class="main-content">
-    <!-- Page Header -->
+
     <div class="page-header">
         <h1 class="page-title">Le tue note</h1>
     </div>
 
-    <!-- Toolbar -->
     <div class="toolbar">
         <div class="search-container">
             <div class="search-icon">🔍</div>
@@ -58,19 +57,15 @@
         </div>
     </div>
 
-    <!-- Container note -->
     <div id="notes-container" class="notes-container">
-        <!-- Le note verranno caricate dinamicamente -->
     </div>
 
-    <!-- Empty State -->
     <div id="empty-state" class="empty-state" style="display: none;">
         <div class="empty-icon">📝</div>
         <h2 class="empty-title">Nessuna nota trovata</h2>
         <p class="empty-description">Inizia creando la tua prima nota!</p>
     </div>
 
-    <!-- Controlli note -->
     <div class="notes-controls">
         <button id="toggle-view-btn" class="btn secondary">Visualizza per cartelle</button>
         <select id="note-folder-select" style="display:none;">
@@ -80,7 +75,6 @@
     
 </main>
 
-<!-- Script -->
 <script th:src="@{/js/home.js}"></script>
 <div th:replace="~{fragments/scripts :: auth-scripts}"></div>
 <script th:src="@{/js/note-viewer.js}"></script>

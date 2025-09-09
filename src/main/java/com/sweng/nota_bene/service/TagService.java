@@ -15,10 +15,7 @@ public class TagService {
     
     @Autowired
     private TagRepository tagRepository;
-    
-    /**
-     * Recupera tutti i tag disponibili
-     */
+
     public List<TagResponse> getAllTags() {
         List<Tag> tags = tagRepository.findAllOrderByNome();
         return tags.stream()
@@ -26,23 +23,14 @@ public class TagService {
                 .collect(Collectors.toList());
     }
     
-    /**
-     * Trova un tag per nome
-     */
     public Tag findByNome(String nome) {
         return tagRepository.findById(nome).orElse(null);
     }
-    
-    /**
-     * Verifica se un tag esiste
-     */
+
     public boolean existsByNome(String nome) {
         return tagRepository.existsById(nome);
     }
     
-    /**
-     * Crea un nuovo tag se non esiste
-     */
     public Tag createTagIfNotExists(String nome) {
         if (nome == null || nome.trim().isEmpty()) {
             return null;

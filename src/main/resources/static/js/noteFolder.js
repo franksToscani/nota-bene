@@ -29,7 +29,6 @@
 
                 this.renderNotes();
 
-                // Toggle view button
                 const toggleBtn = document.getElementById('toggle-view-btn');
                 if (toggleBtn) {
                     toggleBtn.addEventListener('click', () => {
@@ -106,20 +105,18 @@
         return;
     }
 
-    this.notesContainer.innerHTML = ''; // Pulisce il container
+    this.notesContainer.innerHTML = '';
 
     this.cartelle.forEach(cartella => {
-        // Sezione cartella
+
         const folderSection = document.createElement('div');
         folderSection.className = 'folder-section';
 
-        // Header cliccabile per espandere/collassare
         const folderHeader = document.createElement('div');
         folderHeader.className = 'folder-header';
         folderHeader.textContent = cartella.nome;
         folderSection.appendChild(folderHeader);
 
-        // Container note della cartella
         const folderNotesContainer = document.createElement('div');
         folderNotesContainer.className = 'folder-notes';
 
@@ -136,7 +133,6 @@
                 const noteItem = document.createElement('div');
                 noteItem.className = 'note-item';
 
-                // Costruzione card nello stile di home.js
                 const noteCard = document.createElement('div');
                 noteCard.className = 'note-card';
                 noteCard.dataset.noteId = note.id;
@@ -164,14 +160,12 @@
                     </div>
                 `;
 
-                // Event listener dropdown
                 const menuBtn = noteCard.querySelector('.note-menu-btn');
                 menuBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     this.toggleDropdown(menuBtn, note.id);
                 });
 
-                // Click sulla card per espansione
                 noteCard.addEventListener('click', () => this.toggleNoteExpansion(noteCard));
 
                 noteItem.appendChild(noteCard);
@@ -182,13 +176,11 @@
         folderSection.appendChild(folderNotesContainer);
         this.notesContainer.appendChild(folderSection);
 
-        // Toggle click per espandere/collassare la cartella
         folderHeader.addEventListener('click', () => {
             folderNotesContainer.style.display = folderNotesContainer.style.display === 'none' ? 'block' : 'none';
         });
     });
 }
-
 
         renderNotesList() {
     if (!this.notesContainer) return;
@@ -196,23 +188,19 @@
     this.notesContainer.innerHTML = '';
 
     this.notes.forEach(note => {
-        // Crea la card completa usando createNoteCard
         const noteCard = this.createNoteCard(note);
         this.notesContainer.appendChild(noteCard);
     });
 }
 
-/**
- * Funzione per creare l'HTML completo di una nota (stile home.js)
- */
 createNoteCard(note) {
     const noteCard = document.createElement('div');
     noteCard.className = 'note-card';
     noteCard.dataset.noteId = note.id;
     noteCard.dataset.fullContent = note.contenuto;
 
-    const formattedDate = formatDate(note.dataUltimaModifica); // Usa la tua funzione comune per formattare la data
-    const truncatedContent = truncateContent(note.contenuto, 150); // Taglia il contenuto per la preview
+    const formattedDate = formatDate(note.dataUltimaModifica); 
+    const truncatedContent = truncateContent(note.contenuto, 150); 
     const tagHtml = note.tag ? `<div class="note-tag">${escapeHtml(note.tag)}</div>` : '';
 
     const isShared = this.currentUserEmail && note.proprietario !== this.currentUserEmail;

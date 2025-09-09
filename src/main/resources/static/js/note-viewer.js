@@ -1,13 +1,8 @@
-/**
- * note-viewer.js
- * Mostra le note in un modal espandibile al click
- */
 document.addEventListener('DOMContentLoaded', () => {
     const notesContainer = document.getElementById('notes-container');
 
     if (!notesContainer) return;
 
-    // Crea il modal globale
     const modal = document.createElement('div');
     modal.id = 'note-viewer-modal';
     modal.style.cssText = `
@@ -43,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 
-    // Funzione per aprire il modal con dati
     function openModal(noteCard) {
         const title = noteCard.querySelector('.note-title')?.textContent || '';
         const content = noteCard.dataset.fullContent || noteCard.querySelector('.note-content')?.textContent || '';
@@ -54,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = 'flex';
     }
 
-    // Chiudi modal
     function closeModal() {
         modal.style.display = 'none';
     }

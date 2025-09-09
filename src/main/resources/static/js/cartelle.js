@@ -1,8 +1,6 @@
-// cartelle.js
 (function () {
     'use strict';
 
-    // Verifica se siamo nella pagina del form nota
     const noteForm = document.getElementById('note-form');
     if (!noteForm) return;
 
@@ -10,9 +8,6 @@
     const createFolderBtn = document.getElementById('create-folder-btn');
     let currentUserEmail = null;
 
-    /**
-     * Inizializzazione
-     */
     async function initCartelleSection() {
         try {
             const authData = await checkAuthentication();
@@ -34,9 +29,6 @@
         }
     }
 
-    /**
-     * Carica le cartelle dal backend
-     */
     async function loadCartelle(proprietario) {
         try {
             const response = await fetch(`/api/cartelle?proprietario=${encodeURIComponent(proprietario)}`, {
@@ -56,9 +48,6 @@
         }
     }
 
-    /**
-     * Popola il <select> con le cartelle disponibili
-     */
     function populateFolderSelect(cartelle) {
         folderSelect.innerHTML = '';
 
@@ -72,16 +61,13 @@
 
         cartelle.forEach((cartella, index) => {
             const option = document.createElement('option');
-            option.value = cartella.id; // UUID
+            option.value = cartella.id; 
             option.textContent = cartella.nome;
             if (index === 0) option.selected = true; // Seleziona la prima cartella disponibile
             folderSelect.appendChild(option);
         });
     }
 
-    /**
-     * Gestisce la creazione di una nuova cartella
-     */
     async function handleCreateFolder() {
         const modal = document.getElementById('new-folder-modal');
         const input = document.getElementById('new-folder-name');
@@ -90,15 +76,12 @@
 
         if (!modal || !input || !cancelBtn || !confirmBtn) return;
 
-        // Mostra modale
         modal.classList.remove('hidden');
         input.value = '';
         input.focus();
 
-        // Cancella modale
         cancelBtn.onclick = () => modal.classList.add('hidden');
 
-        // Conferma creazione
         confirmBtn.onclick = async () => {
             const nomeCartella = input.value.trim();
             if (!nomeCartella) return;
@@ -118,7 +101,6 @@
                 if (response.ok) {
                     const nuovaCartella = await response.json();
 
-                    // Svuota e aggiungi la nuova cartella come selezionata
                     folderSelect.innerHTML = '';
                     const option = document.createElement('option');
                     option.value = nuovaCartella.id;
@@ -137,7 +119,6 @@
         };
     }
 
-    // Avvio
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initCartelleSection);
     } else {
