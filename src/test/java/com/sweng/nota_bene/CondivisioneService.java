@@ -214,6 +214,24 @@ class CondivisioneServiceTest {
     }
 
     @Test
+    void removeCondivisione_selfRemoval_revokesPermission() {
+        UUID idNota = UUID.randomUUID();
+        String email = "user@example.com";
+        String proprietario = "owner@example.com";
+
+        when(condivisioneRepository.existsByIdNotaAndEmailUtente(idNota, email))
+                .thenReturn(true, false);
+
+        assertTrue(condivisioneService.hasReadPermission(idNota, email, proprietario));
+
+        condivisioneService.removeCondivisione(idNota, email);
+
+        verify(condivisioneRepository, times(1)).deleteByIdNotaAndEmailUtente(idNota, email);
+
+        assertFalse(condivisioneService.hasReadPermission(idNota, email, proprietario));
+    }
+
+    @Test
     void canManagePermissions_ownerTrue() {
         assertTrue(condivisioneService.canManagePermissions("owner@example.com", "owner@example.com"));
     }

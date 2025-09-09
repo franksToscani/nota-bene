@@ -191,6 +191,7 @@ class NotePageHandler {
     async applyFilters() {
         this.toolbar.classList.add('filters-active');
         const params = new URLSearchParams();
+
         /**Normalizzazione delle date prima di pasarle alla ricerca**/
         const normalizeDate = (dateStr) => /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
             ? `${dateStr}T00:00:00Z`
