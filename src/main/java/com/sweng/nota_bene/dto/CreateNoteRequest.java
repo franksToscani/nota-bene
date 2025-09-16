@@ -14,7 +14,7 @@ public record CreateNoteRequest(
         @Size(max = 280, message = "Il contenuto non può superare i 280 caratteri")
         String contenuto,
 
-        String tagId,            
+        String tagNome,
         java.util.UUID idCartella,
         List<CondivisioneRequest> condivisioni
 ) {}

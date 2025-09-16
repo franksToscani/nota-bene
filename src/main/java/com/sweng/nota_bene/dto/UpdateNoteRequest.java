@@ -15,7 +15,7 @@ public record UpdateNoteRequest(
         @Size(max = 280, message = "Il contenuto non può superare i 280 caratteri")
         String contenuto,
         
-        String tagId,     
+        String tagNome,
         UUID idCartella,      
         List<CondivisioneRequest> condivisioni
 ) {}

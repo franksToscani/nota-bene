@@ -344,7 +344,7 @@ void testUpdateNote_NonOwnerCannotUpdateCondivisioni() {
     UpdateNoteRequest request = new UpdateNoteRequest(
         "Titolo Modificato",
         "Contenuto modificato",
-        null,       // tagId
+        null,       // tagNome
         null,       // idCartella
         condivisioni
     );
@@ -437,7 +437,7 @@ void testCreateNote_WithNullCondivisioni_Success() {
     CreateNoteRequest request = new CreateNoteRequest(
         "Nuova Nota",
         "Contenuto della nuova nota",
-        null,       // tagId
+        null,       // tagNome
         null,       // idCartella
         null        // condivisioni
     );
@@ -460,7 +460,7 @@ void testCreateNote_WithEmptyCondivisioni_Success() {
     CreateNoteRequest request = new CreateNoteRequest(
         "Nuova Nota",
         "Contenuto della nuova nota",
-        null,                  // tagId
+        null,                  // tagNome
         null,                  // idCartella
         Collections.emptyList() // condivisioni
     );

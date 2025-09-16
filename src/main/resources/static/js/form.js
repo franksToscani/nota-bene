@@ -136,7 +136,7 @@ class NoteFormHandler {
 
         this.tags.forEach(tag => {
             const option = document.createElement('option');
-            option.value = tag.id;
+            option.value = tag.nome;
             option.textContent = tag.nome;
             this.tagSelect.appendChild(option);
         });
@@ -401,7 +401,7 @@ class NoteFormHandler {
 async saveNote() {
     const titolo = this.titleInput.value.trim();
     const contenuto = this.contentInput.value.trim();
-    const tagId = this.tagSelect.value || null;
+    const tagNome = this.tagSelect.value || null;
     const folderSelect = document.getElementById('note-folder-select');
     const idCartella = folderSelect?.value || null;
 
@@ -422,7 +422,7 @@ async saveNote() {
         const requestBody = { 
             titolo, 
             contenuto,
-            tagId,
+            tagNome,
             idCartella 
         };
 

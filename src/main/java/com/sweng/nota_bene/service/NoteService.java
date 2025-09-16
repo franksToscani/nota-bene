@@ -38,8 +38,8 @@ public class NoteService {
         note.setProprietario(proprietarioEmail);
 
         // Gestione del tag
-        if (request.tagId() != null && !request.tagId().trim().isEmpty()) {
-            String tagNome = request.tagId().trim();
+        if (request.tagNome() != null && !request.tagNome().trim().isEmpty()) {
+            String tagNome = request.tagNome().trim();
             if (tagService.existsByNome(tagNome)) {
                 note.setTag(tagNome);
             } else {
@@ -152,8 +152,8 @@ public class NoteService {
         note.setContenuto(request.contenuto());
 
         // Gestione del tag
-        if (request.tagId() != null && !request.tagId().trim().isEmpty()) {
-            String tagNome = request.tagId().trim();
+        if (request.tagNome() != null && !request.tagNome().trim().isEmpty()) {
+            String tagNome = request.tagNome().trim();
             if (tagService.existsByNome(tagNome)) {
                 note.setTag(tagNome);
             } else {
